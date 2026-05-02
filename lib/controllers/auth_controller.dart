@@ -87,7 +87,7 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  Future<void> createCoachAccount({
+  Future<String?> createCoachAccount({
     required String firstName,
     required String lastName,
     required String email,
@@ -96,7 +96,8 @@ class AuthController extends ChangeNotifier {
   }) async {
     _setLoading(true);
     try {
-      await _client.functions.invoke('create-coach-account', body: {
+      final response =
+          await _client.functions.invoke('create-coach-account', body: {
         'first_name': firstName,
         'last_name': lastName,
         'email': email,
@@ -104,6 +105,11 @@ class AuthController extends ChangeNotifier {
         'speciality': speciality,
       });
       _error = null;
+      final data = response.data;
+      if (data is Map && data['temp_password'] is String) {
+        return data['temp_password'] as String;
+      }
+      return null;
     } catch (e) {
       _error = e.toString();
       rethrow;
@@ -154,6 +160,37 @@ class AuthController extends ChangeNotifier {
     _profile = null;
     _profileLoaded = true;
     notifyListeners();
+  }
+
+  Future<void> updateProfileNames({
+    required String firstName,
+    required String lastName,
+  }) async {
+    _setLoading(true);
+    try {
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) {
+        throw Exception('Not authenticated');
+      }
+
+      await _client.from('profiles').update({
+        'first_name': firstName,
+        'last_name': lastName,
+      }).eq('id', uid);
+
+      await _client.auth.updateUser(UserAttributes(data: {
+        'first_name': firstName,
+        'last_name': lastName,
+      }));
+
+      await getCurrentProfile();
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
   }
 
   void _setLoading(bool value) {

@@ -6,16 +6,44 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showBack;
   final String? badgeText;
+  final List<Widget>? extraActions;
 
   const FlexAppBar({
     super.key,
     required this.title,
     this.showBack = false,
     this.badgeText,
+    this.extraActions,
   });
 
   @override
   Widget build(BuildContext context) {
+    final actionWidgets = <Widget>[];
+    if (extraActions != null) {
+      actionWidgets.addAll(extraActions!);
+    }
+
+    if (badgeText != null) {
+      actionWidgets.add(
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.sagePale,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                badgeText!,
+                style: AppTextStyles.chip.copyWith(color: AppColors.sageDark),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return AppBar(
       backgroundColor: AppColors.white,
       elevation: 0,
@@ -38,26 +66,7 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
             )
           : null,
       title: Text(title, style: AppTextStyles.screenTitle),
-      actions: [
-        if (badgeText != null)
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Center(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.sagePale,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  badgeText!,
-                  style: AppTextStyles.chip.copyWith(color: AppColors.sageDark),
-                ),
-              ),
-            ),
-          ),
-      ],
+      actions: actionWidgets.isEmpty ? null : actionWidgets,
     );
   }
 

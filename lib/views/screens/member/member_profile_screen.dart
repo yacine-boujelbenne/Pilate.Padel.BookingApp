@@ -68,6 +68,16 @@ class MemberProfileScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          FlexPrimaryButton(
+            label: 'Manage account',
+            onPressed: () => context.go('/account/manage'),
+          ),
+          const SizedBox(height: 8),
+          FlexSecondaryButton(
+            label: 'Settings',
+            onPressed: () => context.go('/settings'),
+          ),
+          const SizedBox(height: 8),
           FlexSecondaryButton(
             label: 'Sign out',
             onPressed: () async {

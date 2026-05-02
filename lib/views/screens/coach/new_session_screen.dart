@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../controllers/auth_controller.dart';
+import '../../../controllers/coach_controller.dart';
 import '../../../controllers/session_controller.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/flex_app_bar.dart';
@@ -42,21 +43,63 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
     final coachId = context.read<AuthController>().user?.id;
     if (coachId == null) return;
 
-    final selectedDate = DateTime.tryParse(_date.text.trim()) ?? DateTime.now();
-    final startParts = _start.text.split(':');
-    final endParts = _end.text.split(':');
+    if (_title.text.trim().isEmpty) {
+      ToastMessage.show(context, 'Please enter a session name');
+      return;
+    }
+
+    final selectedDate = DateTime.tryParse(_date.text.trim());
+    if (selectedDate == null) {
+      ToastMessage.show(context, 'Please enter a valid date (YYYY-MM-DD)');
+      return;
+    }
+
+    final startParts = _start.text.trim().split(':');
+    final endParts = _end.text.trim().split(':');
+    if (startParts.length != 2 || endParts.length != 2) {
+      ToastMessage.show(context, 'Please enter valid times (HH:mm)');
+      return;
+    }
+
+    final startHour = int.tryParse(startParts[0]);
+    final startMinute = int.tryParse(startParts[1]);
+    final endHour = int.tryParse(endParts[0]);
+    final endMinute = int.tryParse(endParts[1]);
+    if (startHour == null ||
+        startMinute == null ||
+        endHour == null ||
+        endMinute == null) {
+      ToastMessage.show(context, 'Please enter valid times (HH:mm)');
+      return;
+    }
+
     final startAt = DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-        int.tryParse(startParts.first) ?? 9,
-        int.tryParse(startParts.last) ?? 0);
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      startHour,
+      startMinute,
+    );
     final endAt = DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-        int.tryParse(endParts.first) ?? 10,
-        int.tryParse(endParts.last) ?? 0);
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      endHour,
+      endMinute,
+    );
+
+    if (!endAt.isAfter(startAt)) {
+      ToastMessage.show(context, 'End time must be after start time');
+      return;
+    }
+
+    final maxParticipants = int.tryParse(_max.text.trim()) ?? 10;
+    if (maxParticipants <= 0) {
+      ToastMessage.show(context, 'Max participants must be greater than 0');
+      return;
+    }
+
+    final price = double.tryParse(_price.text.trim()) ?? 0;
 
     try {
       await context.read<SessionController>().createSession({
@@ -66,21 +109,27 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
         'level': _level,
         'start_at': startAt.toIso8601String(),
         'end_at': endAt.toIso8601String(),
-        'max_participants': int.tryParse(_max.text) ?? 10,
+        'max_participants': maxParticipants,
         'booked_count': 0,
-        'price_tnd': double.tryParse(_price.text) ?? 0,
-        'status': 'scheduled',
+        'price_tnd': price,
+        'status': 'pending',
       });
       if (!mounted) return;
-      ToastMessage.show(context, 'Session created! 🎉');
+      await context.read<CoachController>().fetchCoachSchedule();
+      if (!mounted) return;
+      ToastMessage.show(context, 'Session sent for approval');
       context.pop();
     } catch (_) {
-      if (mounted) ToastMessage.show(context, 'Could not create session');
+      if (mounted) {
+        final error = context.read<SessionController>().error;
+        ToastMessage.show(context, error ?? 'Could not create session');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final loading = context.watch<SessionController>().isLoading;
     return Scaffold(
       appBar: const FlexAppBar(title: 'Create Session', showBack: true),
       body: ListView(
@@ -132,7 +181,10 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
               hint: 'Price TND',
               keyboardType: TextInputType.number),
           const SizedBox(height: 14),
-          FlexPrimaryButton(label: 'Create session', onPressed: _createSession),
+          FlexPrimaryButton(
+            label: loading ? 'Creating...' : 'Create session',
+            onPressed: loading ? null : _createSession,
+          ),
         ],
       ),
     );

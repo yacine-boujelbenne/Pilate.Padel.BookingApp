@@ -32,24 +32,62 @@ class _AddCoachScreenState extends State<AddCoachScreen> {
   }
 
   Future<void> _create() async {
+    if (_first.text.trim().isEmpty ||
+        _last.text.trim().isEmpty ||
+        _email.text.trim().isEmpty ||
+        _spec.text.trim().isEmpty ||
+        _phone.text.trim().isEmpty) {
+      ToastMessage.show(context, 'Please fill in all fields');
+      return;
+    }
+
+    final auth = context.read<AuthController>();
     try {
-      await context.read<AuthController>().createCoachAccount(
-            firstName: _first.text,
-            lastName: _last.text,
-            email: _email.text,
-            phone: _phone.text,
-            speciality: _spec.text,
-          );
+      final tempPassword = await auth.createCoachAccount(
+        firstName: _first.text.trim(),
+        lastName: _last.text.trim(),
+        email: _email.text.trim(),
+        phone: _phone.text.trim(),
+        speciality: _spec.text.trim(),
+      );
       if (!mounted) return;
+      if (tempPassword != null && tempPassword.isNotEmpty) {
+        await showDialog<void>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Coach account created'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Temporary password (shown once):'),
+                const SizedBox(height: 8),
+                SelectableText(tempPassword),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) return;
+      }
       ToastMessage.show(context, 'Coach account created!');
       Navigator.of(context).pop();
     } catch (_) {
-      if (mounted) ToastMessage.show(context, 'Failed to create coach account');
+      if (mounted) {
+        ToastMessage.show(
+            context, auth.error ?? 'Failed to create coach account');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final loading = context.watch<AuthController>().isLoading;
     return Scaffold(
       appBar: const FlexAppBar(title: 'Add Coach', showBack: true),
       body: ListView(
@@ -65,7 +103,10 @@ class _AddCoachScreenState extends State<AddCoachScreen> {
           const SizedBox(height: 8),
           FlexFormInput(controller: _phone, hint: 'Phone'),
           const SizedBox(height: 12),
-          FlexPrimaryButton(label: 'Create account', onPressed: _create),
+          FlexPrimaryButton(
+            label: loading ? 'Creating...' : 'Create account',
+            onPressed: loading ? null : _create,
+          ),
         ],
       ),
     );

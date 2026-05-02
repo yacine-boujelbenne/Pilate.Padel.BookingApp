@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/admin_controller.dart';
+import '../../../controllers/auth_controller.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/chip_badge.dart';
 import '../../widgets/coach_card.dart';
@@ -35,7 +36,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     final searchController = TextEditingController();
 
     return Scaffold(
-      appBar: const FlexAppBar(title: 'Admin Panel', badgeText: 'Admin'),
+      appBar: FlexAppBar(
+        title: 'Admin Panel',
+        badgeText: 'Admin',
+        extraActions: [
+          IconButton(
+            tooltip: 'Sign out',
+            icon: const Icon(Icons.logout, color: AppColors.sageDark),
+            onPressed: () async {
+              await context.read<AuthController>().signOut();
+              if (context.mounted) context.go('/login');
+            },
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

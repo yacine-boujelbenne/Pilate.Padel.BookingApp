@@ -12,6 +12,8 @@ import '../views/screens/auth/register_screen.dart';
 import '../views/screens/auth/splash_screen.dart';
 import '../views/screens/coach/coach_home_screen.dart';
 import '../views/screens/coach/new_session_screen.dart';
+import '../views/screens/common/manage_account_screen.dart';
+import '../views/screens/common/settings_screen.dart';
 import '../views/screens/member/member_bookings_screen.dart';
 import '../views/screens/member/member_explore_screen.dart';
 import '../views/screens/member/member_home_screen.dart';
@@ -34,6 +36,12 @@ class AppRouter {
       GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterScreen()),
+      GoRoute(
+          path: '/settings',
+          builder: (context, state) => const SettingsScreen()),
+      GoRoute(
+          path: '/account/manage',
+          builder: (context, state) => const ManageAccountScreen()),
       GoRoute(
           path: '/member/home',
           builder: (context, state) => const MemberHomeScreen()),

@@ -10,10 +10,12 @@ class SessionController extends ChangeNotifier {
   bool _loading = false;
   String? _error;
   List<SessionModel> _sessions = [];
+  List<Map<String, dynamic>> _editRequests = [];
 
   bool get isLoading => _loading;
   String? get error => _error;
   List<SessionModel> get sessions => _sessions;
+  List<Map<String, dynamic>> get editRequests => _editRequests;
 
   Future<void> fetchSessionsByDate(DateTime date) async {
     _setLoading(true);
@@ -54,6 +56,23 @@ class SessionController extends ChangeNotifier {
     }
   }
 
+  Future<void> fetchPendingEditRequests() async {
+    _setLoading(true);
+    try {
+      final res = await _client
+          .from('session_edit_requests')
+          .select()
+          .eq('status', 'pending')
+          .order('created_at', ascending: false);
+      _editRequests = (res as List).cast<Map<String, dynamic>>();
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<void> createSession(Map<String, dynamic> payload) async {
     _setLoading(true);
     try {
@@ -62,8 +81,95 @@ class SessionController extends ChangeNotifier {
       await fetchAllSessions();
     } catch (e) {
       _error = e.toString();
-      _setLoading(false);
       rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> proposeSessionEdit({
+    required String sessionId,
+    required String coachId,
+    required Map<String, dynamic> changes,
+  }) async {
+    _setLoading(true);
+    try {
+      await _client.from('session_edit_requests').insert({
+        'session_id': sessionId,
+        'coach_id': coachId,
+        ...changes,
+      });
+      _error = null;
+      await fetchPendingEditRequests();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> approveEditRequest(Map<String, dynamic> request) async {
+    _setLoading(true);
+    try {
+      final sessionId = request['session_id'] as String?;
+      final requestId = request['id'] as String?;
+      if (sessionId == null || requestId == null) {
+        throw Exception('Invalid edit request');
+      }
+
+      final updates = <String, dynamic>{};
+      if (request['proposed_title'] != null) {
+        updates['title'] = request['proposed_title'];
+      }
+      if (request['proposed_start_at'] != null) {
+        updates['start_at'] = request['proposed_start_at'];
+      }
+      if (request['proposed_end_at'] != null) {
+        updates['end_at'] = request['proposed_end_at'];
+      }
+      if (request['proposed_max_participants'] != null) {
+        updates['max_participants'] = request['proposed_max_participants'];
+      }
+      if (request['proposed_price_tnd'] != null) {
+        updates['price_tnd'] = request['proposed_price_tnd'];
+      }
+      if (request['proposed_level'] != null) {
+        updates['level'] = request['proposed_level'];
+      }
+
+      if (updates.isNotEmpty) {
+        await _client.from('sessions').update(updates).eq('id', sessionId);
+      }
+
+      await _client
+          .from('session_edit_requests')
+          .update({'status': 'approved'}).eq('id', requestId);
+
+      _error = null;
+      await fetchAllSessions();
+      await fetchPendingEditRequests();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> rejectEditRequest(String requestId) async {
+    _setLoading(true);
+    try {
+      await _client
+          .from('session_edit_requests')
+          .update({'status': 'rejected'}).eq('id', requestId);
+      _error = null;
+      await fetchPendingEditRequests();
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -75,13 +181,18 @@ class SessionController extends ChangeNotifier {
       await fetchAllSessions();
     } catch (e) {
       _error = e.toString();
-      _setLoading(false);
       rethrow;
+    } finally {
+      _setLoading(false);
     }
   }
 
   Future<void> cancelSession(String id) async {
     await updateSession(id, {'status': 'cancelled'});
+  }
+
+  Future<void> approveSession(String id) async {
+    await updateSession(id, {'status': 'scheduled'});
   }
 
   void _setLoading(bool value) {
