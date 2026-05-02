@@ -11,6 +11,7 @@ import 'controllers/admin_controller.dart';
 import 'controllers/auth_controller.dart';
 import 'controllers/booking_controller.dart';
 import 'controllers/coach_controller.dart';
+import 'controllers/settings_controller.dart';
 import 'controllers/session_controller.dart';
 import 'controllers/waitlist_controller.dart';
 import 'services/notification_service.dart';
@@ -60,6 +61,7 @@ class FlexPilatesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => WaitlistController()),
         ChangeNotifierProvider(create: (_) => AdminController()),
         ChangeNotifierProvider(create: (_) => CoachController()),
+        ChangeNotifierProvider(create: (_) => SettingsController()),
       ],
       child: MaterialApp.router(
         title: 'Fléx Pilates Studio',
