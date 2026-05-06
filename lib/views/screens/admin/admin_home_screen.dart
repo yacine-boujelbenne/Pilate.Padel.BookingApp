@@ -123,7 +123,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       const SizedBox(width: 6),
                       TextButton(
                           onPressed: () =>
-                              context.go('/admin/users/${u['id']}'),
+                              context.push('/admin/users/${u['id']}'),
                           child: const Text('View')),
                     ],
                   ),
@@ -144,11 +144,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const SizedBox(height: 8),
           FlexPrimaryButton(
               label: '+ Add coach account',
-              onPressed: () => context.go('/admin/coaches/new')),
+              onPressed: () => context.push('/admin/coaches/new')),
           const SizedBox(height: 8),
           FlexSecondaryButton(
               label: 'Manage all sessions',
-              onPressed: () => context.go('/admin/sessions')),
+              onPressed: () => context.push('/admin/sessions')),
         ],
       ),
     );

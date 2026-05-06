@@ -156,7 +156,7 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
                       ],
                       OutlinedButton(
                           onPressed: () =>
-                              context.go('/admin/sessions/${s.id}/edit'),
+                              context.push('/admin/sessions/${s.id}/edit'),
                           child: const Text('Edit')),
                       if (!isCancelled) ...[
                         const SizedBox(width: 8),

@@ -238,7 +238,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
           IconButton(
             tooltip: 'Settings',
             icon: const Icon(Icons.settings, color: AppColors.sageDark),
-            onPressed: () => context.go('/settings'),
+            onPressed: () => context.push('/settings'),
           ),
           IconButton(
             tooltip: 'Sign out',
@@ -393,7 +393,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
           const SizedBox(height: 12),
           FlexPrimaryButton(
               label: '+ Create new session',
-              onPressed: () => context.go('/coach/sessions/new')),
+              onPressed: () => context.push('/coach/sessions/new')),
         ],
       ),
     );
