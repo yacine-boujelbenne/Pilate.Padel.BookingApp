@@ -27,7 +27,11 @@ class _MemberWaitlistScreenState extends State<MemberWaitlistScreen> {
     final waitlists = context.watch<WaitlistController>().entries;
 
     return Scaffold(
-      appBar: const FlexAppBar(title: 'My Waitlists', showBack: true),
+      appBar: const FlexAppBar(
+        title: 'My Waitlists',
+        showBack: true,
+        backTarget: '/member/profile',
+      ),
       body: waitlists.isEmpty
           ? Center(
               child: Column(

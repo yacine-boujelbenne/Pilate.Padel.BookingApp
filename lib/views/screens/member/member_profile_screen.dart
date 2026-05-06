@@ -75,7 +75,7 @@ class MemberProfileScreen extends StatelessWidget {
           const SizedBox(height: 8),
           FlexSecondaryButton(
             label: 'Settings',
-            onPressed: () => context.go('/settings'),
+            onPressed: () => context.go('/settings', extra: '/member/profile'),
           ),
           const SizedBox(height: 8),
           FlexSecondaryButton(

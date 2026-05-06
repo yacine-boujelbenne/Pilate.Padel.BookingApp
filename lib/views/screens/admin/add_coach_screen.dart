@@ -89,7 +89,11 @@ class _AddCoachScreenState extends State<AddCoachScreen> {
   Widget build(BuildContext context) {
     final loading = context.watch<AuthController>().isLoading;
     return Scaffold(
-      appBar: const FlexAppBar(title: 'Add Coach', showBack: true),
+      appBar: const FlexAppBar(
+        title: 'Add Coach',
+        showBack: true,
+        backTarget: '/admin/home',
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

@@ -21,6 +21,14 @@ class _EditSessionScreenState extends State<EditSessionScreen> {
   final _level = TextEditingController();
   final _price = TextEditingController();
 
+
+  void _goBack() {
+    if (GoRouter.of(context).canPop()) {
+      context.pop();
+      return;
+    }
+    context.go('/admin/sessions');
+  }
   @override
   void initState() {
     super.initState();
@@ -49,13 +57,17 @@ class _EditSessionScreenState extends State<EditSessionScreen> {
       'price_tnd': double.tryParse(_price.text) ?? 0,
     });
     if (!mounted) return;
-    context.pop();
+    _goBack();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const FlexAppBar(title: 'Edit Session', showBack: true),
+      appBar: const FlexAppBar(
+        title: 'Edit Session',
+        showBack: true,
+        backTarget: '/admin/sessions',
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

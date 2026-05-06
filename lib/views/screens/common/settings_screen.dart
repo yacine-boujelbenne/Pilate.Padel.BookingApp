@@ -10,7 +10,9 @@ import '../../widgets/flex_app_bar.dart';
 import '../../widgets/toast_message.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final String backTarget;
+
+  const SettingsScreen({super.key, required this.backTarget});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -29,7 +31,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsController>();
     return Scaffold(
-      appBar: const FlexAppBar(title: 'Settings', showBack: true),
+      appBar: FlexAppBar(
+        title: 'Settings',
+        showBack: true,
+        backTarget: widget.backTarget,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -79,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 8),
           FlexSecondaryButton(
             label: 'Manage account',
-            onPressed: () => context.go('/account/manage'),
+            onPressed: () => context.go('/account/manage', extra: '/member/profile'),
           ),
           const SizedBox(height: 8),
           FlexPrimaryButton(
