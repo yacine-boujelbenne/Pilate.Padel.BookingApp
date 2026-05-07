@@ -65,6 +65,10 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
                         amount: session.priceTnd,
                       );
                   if (!mounted) return;
+                  await context
+                      .read<SessionController>()
+                      .fetchSessionsByDate(_selectedDate);
+                  if (!mounted) return;
                   context.go('/member/payment-success', extra: {
                     'sessionName': session.title,
                     'amount': session.priceTnd,
@@ -119,6 +123,13 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
     final auth = context.watch<AuthController>();
     final sessions = context.watch<SessionController>().sessions;
     final sessionCtrl = context.watch<SessionController>();
+    final bookings = context.watch<BookingController>().bookings;
+    final confirmedBookings = bookings
+        .where((booking) => booking.status == 'confirmed')
+        .toList();
+    final bookedSessionIds = confirmedBookings
+      .map((booking) => booking.sessionId)
+      .toSet();
 
     return Scaffold(
       appBar: const FlexAppBar(title: 'Fléx', badgeText: 'Member'),
@@ -193,6 +204,7 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
                     padding: const EdgeInsets.only(bottom: 10),
                     child: SessionCard(
                       session: s,
+                      isBooked: bookedSessionIds.contains(s.id),
                       onBook: () => _openBookingFlow(s),
                       onWaitlist: () => _openWaitlist(s),
                     ),
@@ -201,33 +213,52 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
                 const SizedBox(height: 10),
                 Text('UPCOMING BOOKINGS', style: AppTextStyles.sectionLabel),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(16)),
-                  child: const Column(
-                    children: [
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Session'),
-                            Text('Date'),
-                            Text('Status')
-                          ]),
-                      SizedBox(height: 8),
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Reformer'),
-                            Text('12 May'),
-                            ChipBadge(
-                                text: 'Upcoming',
-                                variant: ChipBadgeVariant.amber)
-                          ]),
-                    ],
+                if (confirmedBookings.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(16)),
+                    child: Text(
+                      'No confirmed bookings yet',
+                      style: AppTextStyles.body,
+                    ),
+                  )
+                else
+                  ...confirmedBookings.map(
+                    (booking) => Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(16)),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Session ${booking.sessionId.substring(0, 6)}',
+                                  style: AppTextStyles.body,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Booked ${booking.bookedAt.day}/${booking.bookedAt.month}/${booking.bookedAt.year}',
+                                  style: AppTextStyles.sessionMeta,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const ChipBadge(
+                            text: 'Upcoming',
+                            variant: ChipBadgeVariant.amber,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
               ],
             ),
     );

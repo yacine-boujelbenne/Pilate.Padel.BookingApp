@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/theme.dart';
 
 class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showBack;
+  final String? backTarget;
   final String? badgeText;
   final List<Widget>? extraActions;
 
@@ -12,12 +14,29 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     this.showBack = false,
+    this.backTarget,
     this.badgeText,
     this.extraActions,
   });
 
   @override
   Widget build(BuildContext context) {
+    void handleBack() {
+      if (GoRouter.of(context).canPop()) {
+        context.pop();
+        return;
+      }
+
+      if (backTarget != null && backTarget!.isNotEmpty) {
+        context.go(backTarget!);
+        return;
+      }
+
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    }
+
     final actionWidgets = <Widget>[];
     if (extraActions != null) {
       actionWidgets.addAll(extraActions!);
@@ -52,7 +71,7 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
           ? Padding(
               padding: const EdgeInsets.all(8),
               child: InkWell(
-                onTap: () => Navigator.of(context).maybePop(),
+                onTap: handleBack,
                 borderRadius: BorderRadius.circular(10),
                 child: Ink(
                   decoration: BoxDecoration(

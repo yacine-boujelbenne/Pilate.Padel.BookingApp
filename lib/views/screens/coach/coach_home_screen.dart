@@ -24,6 +24,15 @@ class CoachHomeScreen extends StatefulWidget {
 }
 
 class _CoachHomeScreenState extends State<CoachHomeScreen> {
+  Future<void> _loadDashboard() async {
+    final coachController = context.read<CoachController>();
+    await coachController.fetchCoachSchedule();
+    if (!mounted) return;
+    await coachController.fetchCoachTrainees();
+    if (!mounted) return;
+    await coachController.fetchFillRateStats();
+  }
+
   DateTime _parseDate(dynamic value) {
     if (value is DateTime) return value;
     if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
@@ -219,16 +228,27 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CoachController>().fetchCoachSchedule();
-      context.read<CoachController>().fetchCoachTrainees();
-      context.read<CoachController>().fetchFillRateStats();
+      _loadDashboard();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthController>();
     final c = context.watch<CoachController>();
     final schedule = c.schedule;
+    final profile = auth.profile;
+    final displayName = profile == null || profile.fullName.trim().isEmpty
+        ? 'Coach'
+        : profile.fullName.trim();
+    final speciality = profile?.speciality?.trim().isNotEmpty == true
+        ? profile!.speciality!.trim()
+        : 'Coach portal';
+    final initials = profile == null
+        ? 'C'
+        : '${profile.firstName.isNotEmpty ? profile.firstName[0] : ''}${profile.lastName.isNotEmpty ? profile.lastName[0] : ''}'
+            .trim()
+            .toUpperCase();
 
     return Scaffold(
       appBar: FlexAppBar(
@@ -238,7 +258,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
           IconButton(
             tooltip: 'Settings',
             icon: const Icon(Icons.settings, color: AppColors.sageDark),
-            onPressed: () => context.push('/settings'),
+            onPressed: () => context.go('/settings', extra: '/coach/home'),
           ),
           IconButton(
             tooltip: 'Sign out',
@@ -258,13 +278,13 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
             decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(16)),
-            child: const Row(
+            child: Row(
               children: [
-                AvatarWidget(initials: 'CB', size: 52),
+                AvatarWidget(initials: initials, size: 52),
                 SizedBox(width: 10),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Coach Ben Ali'),
-                  Text('Reformer Specialist')
+                  Text(displayName),
+                  Text(speciality)
                 ]),
               ],
             ),
@@ -276,11 +296,17 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
             mainAxisSpacing: 10,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            children: const [
-              StatCard(value: '4', label: 'Sessions today'),
-              StatCard(value: '18', label: 'Sessions week'),
-              StatCard(value: '79%', label: 'Fill rate'),
-              StatCard(value: '4.9', label: 'Rating'),
+            children: [
+              StatCard(
+                  value: c.sessionsToday.toString(), label: 'Sessions today'),
+              StatCard(value: c.sessionsWeek.toString(), label: 'Sessions week'),
+              StatCard(
+                  value:
+                      '${(c.averageFillRate * 100).clamp(0, 100).toStringAsFixed(0)}%',
+                  label: 'Average fill'),
+              StatCard(
+                  value: c.upcomingSessions.toString(),
+                  label: 'Upcoming'),
             ],
           ),
           const SizedBox(height: 12),
@@ -329,17 +355,30 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                             text: status, variant: _statusVariant(status)),
                       ],
                     ),
-                    if (status == 'scheduled')
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () => _openEditRequestDialog(item),
-                          child: const Text('Propose edit'),
-                        ),
-                      )
-                    else if (status == 'pending')
-                      Text('Awaiting admin approval',
-                          style: AppTextStyles.sessionMeta),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (booked > 0)
+                          TextButton.icon(
+                            onPressed: () => context.go(
+                              '/sessions/${item['id']}/attendees',
+                              extra: '/coach/home',
+                            ),
+                            icon: const Icon(Icons.people, size: 16),
+                            label: Text('View Attendees ($booked)'),
+                          ),
+                        const SizedBox(width: 8),
+                        if (status == 'scheduled')
+                          TextButton(
+                            onPressed: () => _openEditRequestDialog(item),
+                            child: const Text('Propose edit'),
+                          )
+                        else if (status == 'pending')
+                          Text('Awaiting admin approval',
+                              style: AppTextStyles.sessionMeta),
+                      ],
+                    ),
                   ],
                 ),
               );
@@ -393,7 +432,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
           const SizedBox(height: 12),
           FlexPrimaryButton(
               label: '+ Create new session',
-              onPressed: () => context.push('/coach/sessions/new')),
+              onPressed: () => context.go('/coach/sessions/new')),
         ],
       ),
     );

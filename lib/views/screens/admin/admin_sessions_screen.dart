@@ -41,10 +41,23 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
     }
 
     return Scaffold(
-      appBar: const FlexAppBar(title: 'All Sessions', showBack: true),
+      appBar: const FlexAppBar(
+        title: 'All Sessions',
+        showBack: true,
+        backTarget: '/admin/home',
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton.icon(
+              onPressed: () => context.go('/admin/sessions/new'),
+              icon: const Icon(Icons.add),
+              label: const Text('Add Session'),
+            ),
+          ),
+          const SizedBox(height: 12),
           if (editRequests.isNotEmpty) ...[
             Text('EDIT REQUESTS', style: AppTextStyles.sectionLabel),
             const SizedBox(height: 8),
@@ -137,11 +150,28 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
                   Text(s.title, style: AppTextStyles.sessionTitle),
                   Text('${s.coachName} · ${s.studioName}',
                       style: AppTextStyles.sessionMeta),
+                  const SizedBox(height: 4),
+                  Text('${s.bookedCount}/${s.maxParticipants} participants',
+                      style: AppTextStyles.sessionMeta),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       ChipBadge(text: s.status, variant: badgeVariant),
                       const Spacer(),
+                      if (s.bookedCount > 0)
+                        TextButton.icon(
+                          onPressed: () => context.go(
+                            '/sessions/${s.id}/attendees',
+                            extra: '/admin/sessions',
+                          ),
+                          icon: const Icon(Icons.people, size: 16),
+                          label: const Text('Attendees'),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
                       if (isPending) ...[
                         ElevatedButton(
                           onPressed: () => context

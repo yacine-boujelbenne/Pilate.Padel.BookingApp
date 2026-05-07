@@ -27,6 +27,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       context.read<AdminController>().fetchDashboardStats();
       context.read<AdminController>().fetchAllUsers();
       context.read<AdminController>().fetchAllCoaches();
+      context.read<AdminController>().fetchPendingValidations();
     });
   }
 
@@ -69,32 +70,73 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const SizedBox(height: 12),
           Text('PENDING VALIDATIONS', style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(16)),
-            child: Row(
-              children: [
-                const Expanded(child: Text('Sara Kouki\nPending payment')),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.greenLight,
-                      foregroundColor: AppColors.greenDark),
-                  child: const Text('Validate'),
+          if (admin.pendingValidations.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16)),
+              child: Text(
+                'No pending payment validations',
+                style: AppTextStyles.body,
+              ),
+            )
+          else
+            ...admin.pendingValidations.map((booking) {
+              final profile = booking['profiles'] as Map<String, dynamic>?;
+              final session = booking['sessions'] as Map<String, dynamic>?;
+              final memberName =
+                  '${profile?['first_name'] ?? ''} ${profile?['last_name'] ?? ''}'
+                      .trim();
+              final sessionTitle = session?['title'] as String? ?? 'Session';
+              final amount = (booking['paid_amount_tnd'] as num?)?.toStringAsFixed(2) ?? '0.00';
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      memberName.isEmpty ? 'Unknown member' : memberName,
+                      style: AppTextStyles.sessionTitle,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$sessionTitle · Pending payment · $amount TND',
+                      style: AppTextStyles.sessionMeta,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () => context
+                              .read<AdminController>()
+                              .approvePayment(booking['id'] as String),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.greenLight,
+                              foregroundColor: AppColors.greenDark),
+                          child: const Text('Validate'),
+                        ),
+                        const SizedBox(width: 6),
+                        ElevatedButton(
+                          onPressed: () => context
+                              .read<AdminController>()
+                              .rejectPayment(booking['id'] as String),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.redLight,
+                              foregroundColor: AppColors.redDark),
+                          child: const Text('Reject'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 6),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.redLight,
-                      foregroundColor: AppColors.redDark),
-                  child: const Text('Reject'),
-                ),
-              ],
-            ),
-          ),
+              );
+            }),
           const SizedBox(height: 12),
           Text('MANAGE USERS', style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
