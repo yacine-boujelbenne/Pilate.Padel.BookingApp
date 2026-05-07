@@ -8,8 +8,10 @@ import '../views/screens/admin/admin_sessions_screen.dart';
 import '../views/screens/admin/edit_session_screen.dart';
 import '../views/screens/admin/admin_new_session_screen.dart';
 import '../views/screens/admin/member_detail_screen.dart';
+import '../views/screens/auth/forgot_password_screen.dart';
 import '../views/screens/auth/login_screen.dart';
 import '../views/screens/auth/register_screen.dart';
+import '../views/screens/auth/reset_password_screen.dart';
 import '../views/screens/auth/splash_screen.dart';
 import '../views/screens/coach/coach_home_screen.dart';
 import '../views/screens/coach/new_session_screen.dart';
@@ -38,6 +40,12 @@ class AppRouter {
       GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterScreen()),
+      GoRoute(
+          path: '/forgot-password',
+          builder: (context, state) => const ForgotPasswordScreen()),
+      GoRoute(
+          path: '/reset-password',
+          builder: (context, state) => const ResetPasswordScreen()),
       GoRoute(
           path: '/settings',
           builder: (context, state) => SettingsScreen(
@@ -121,7 +129,7 @@ class AppRouter {
     final profileLoaded = authController.profileLoaded;
     final path = state.matchedLocation;
 
-    final publicRoutes = {'/', '/login', '/register'};
+    final publicRoutes = {'/', '/login', '/register', '/forgot-password', '/reset-password'};
 
     if (isLoggedIn && !profileLoaded) {
       return null;

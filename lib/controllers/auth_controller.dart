@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -6,6 +8,8 @@ import '../services/supabase_service.dart';
 
 class AuthController extends ChangeNotifier {
   final _client = SupabaseService.instance.client;
+  final _passwordRecoveryController = StreamController<void>.broadcast();
+  Stream<void> get passwordRecoveryStream => _passwordRecoveryController.stream;
 
   User? _user;
   Profile? _profile;
@@ -23,13 +27,18 @@ class AuthController extends ChangeNotifier {
   void listenAuthState() {
     _user = _client.auth.currentUser;
     _client.auth.onAuthStateChange.listen((data) async {
+      final event = data.event;
       _user = data.session?.user;
       _profileLoaded = false;
-      if (_user != null) {
-        await getCurrentProfile();
+      if (event == AuthChangeEvent.passwordRecovery) {
+        _passwordRecoveryController.add(null);
       } else {
-        _profile = null;
-        _profileLoaded = true;
+        if (_user != null) {
+          await getCurrentProfile();
+        } else {
+          _profile = null;
+          _profileLoaded = true;
+        }
       }
       notifyListeners();
     });
@@ -152,6 +161,38 @@ class AuthController extends ChangeNotifier {
     }
     _profileLoaded = true;
     notifyListeners();
+  }
+
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    _setLoading(true);
+    try {
+      await _client.auth.resetPasswordForEmail(
+        email,
+        redirectTo:
+            'https://fxpbjztsyucdujwgrhji.supabase.co/functions/v1/auth-redirect',
+      );
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> updatePassword({required String newPassword}) async {
+    _setLoading(true);
+    try {
+      await _client.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
   }
 
   Future<void> signOut() async {

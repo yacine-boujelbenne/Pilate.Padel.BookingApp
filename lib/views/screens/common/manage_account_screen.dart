@@ -87,6 +87,11 @@ class _ManageAccountScreenState extends State<ManageAccountScreen> {
           ),
           const SizedBox(height: 8),
           FlexSecondaryButton(
+            label: 'Change password',
+            onPressed: () => context.push('/reset-password'),
+          ),
+          const SizedBox(height: 8),
+          FlexSecondaryButton(
             label: 'Cancel',
             onPressed: loading ? null : _goBack,
           ),
