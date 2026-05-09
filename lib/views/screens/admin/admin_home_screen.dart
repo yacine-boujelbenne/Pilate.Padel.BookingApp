@@ -24,16 +24,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AdminController>().fetchDashboardStats();
-      context.read<AdminController>().fetchAllUsers();
-      context.read<AdminController>().fetchAllCoaches();
-      context.read<AdminController>().fetchPendingValidations();
+      context.read<AdminController>().refreshDashboardData();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final admin = context.watch<AdminController>();
+    final auth = context.watch<AuthController>();
     final searchController = TextEditingController();
 
     return Scaffold(
@@ -41,6 +39,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         title: 'Admin Panel',
         badgeText: 'Admin',
         extraActions: [
+          IconButton(
+            tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh, color: AppColors.sageDark),
+            onPressed: () =>
+                context.read<AdminController>().refreshDashboardData(),
+          ),
           IconButton(
             tooltip: 'Sign out',
             icon: const Icon(Icons.logout, color: AppColors.sageDark),
@@ -54,17 +58,58 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if ((auth.profile?.role ?? '') != 'admin' || admin.error != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.redLight,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Dashboard diagnostic',
+                    style: AppTextStyles.sectionLabel.copyWith(
+                      color: AppColors.redDark,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Current role: ${auth.profile?.role ?? 'unknown'}',
+                    style: AppTextStyles.body,
+                  ),
+                  if (admin.error != null) ...[
+                    const SizedBox(height: 4),
+                    Text('Error: ${admin.error}', style: AppTextStyles.body),
+                  ],
+                ],
+              ),
+            ),
           GridView.count(
             crossAxisCount: 2,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            children: const [
-              StatCard(value: '124', label: 'Active members'),
-              StatCard(value: '38', label: 'Sessions / week'),
-              StatCard(value: '4810', label: 'Revenue (TND)'),
-              StatCard(value: '6', label: 'Active coaches'),
+            children: [
+              StatCard(
+                value: admin.stats['activeMembers']?.toString() ?? '0',
+                label: 'Active members',
+              ),
+              StatCard(
+                value: admin.stats['sessionsWeek']?.toString() ?? '0',
+                label: 'Sessions / week',
+              ),
+              StatCard(
+                value: admin.stats['revenueTnd']?.toStringAsFixed(0) ?? '0',
+                label: 'Revenue (TND)',
+              ),
+              StatCard(
+                value: admin.stats['activeCoaches']?.toString() ?? '0',
+                label: 'Active coaches',
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -89,7 +134,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   '${profile?['first_name'] ?? ''} ${profile?['last_name'] ?? ''}'
                       .trim();
               final sessionTitle = session?['title'] as String? ?? 'Session';
-              final amount = (booking['paid_amount_tnd'] as num?)?.toStringAsFixed(2) ?? '0.00';
+              final amount =
+                  (booking['paid_amount_tnd'] as num?)?.toStringAsFixed(2) ??
+                      '0.00';
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
@@ -142,47 +189,68 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const SizedBox(height: 8),
           FlexFormInput(controller: searchController, hint: 'Search user...'),
           const SizedBox(height: 8),
-          ...admin.users.take(3).map(
-                (u) => Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(14)),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          child: Text(
-                              '${u['first_name'] ?? ''} ${u['last_name'] ?? ''}')),
-                      const ChipBadge(
-                          text: 'Plan', variant: ChipBadgeVariant.amber),
-                      const SizedBox(width: 6),
-                      ChipBadge(
-                          text: u['is_blocked'] == true ? 'Blocked' : 'Active',
-                          variant: u['is_blocked'] == true
-                              ? ChipBadgeVariant.red
-                              : ChipBadgeVariant.green),
-                      const SizedBox(width: 6),
-                      TextButton(
-                          onPressed: () =>
-                              context.push('/admin/users/${u['id']}'),
-                          child: const Text('View')),
-                    ],
+          if (admin.users.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text('No users available', style: AppTextStyles.body),
+            )
+          else
+            ...admin.users.take(3).map(
+                  (u) => Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(14)),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: Text(
+                                '${u['first_name'] ?? ''} ${u['last_name'] ?? ''}')),
+                        const ChipBadge(
+                            text: 'Plan', variant: ChipBadgeVariant.amber),
+                        const SizedBox(width: 6),
+                        ChipBadge(
+                            text:
+                                u['is_blocked'] == true ? 'Blocked' : 'Active',
+                            variant: u['is_blocked'] == true
+                                ? ChipBadgeVariant.red
+                                : ChipBadgeVariant.green),
+                        const SizedBox(width: 6),
+                        TextButton(
+                            onPressed: () =>
+                                context.push('/admin/users/${u['id']}'),
+                            child: const Text('View')),
+                      ],
+                    ),
                   ),
                 ),
-              ),
           const SizedBox(height: 12),
           Text('COACHES', style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
-          ...admin.coaches.map(
-            (c) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: CoachCard(
-                  name: '${c['first_name'] ?? ''} ${c['last_name'] ?? ''}',
-                  speciality: '${c['speciality'] ?? 'Coach'}',
-                  onEdit: () {}),
+          if (admin.coaches.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text('No coaches available', style: AppTextStyles.body),
+            )
+          else
+            ...admin.coaches.map(
+              (c) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: CoachCard(
+                    name: '${c['first_name'] ?? ''} ${c['last_name'] ?? ''}',
+                    speciality: '${c['speciality'] ?? 'Coach'}',
+                    onEdit: () {}),
+              ),
             ),
-          ),
           const SizedBox(height: 8),
           FlexPrimaryButton(
               label: '+ Add coach account',
