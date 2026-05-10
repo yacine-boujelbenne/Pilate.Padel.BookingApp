@@ -52,7 +52,7 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
   }
 
   Future<void> _loadCoaches() async {
-    setState(() => _loadingCoaches = true);
+    if (mounted) setState(() => _loadingCoaches = true);
     try {
       final res = await SupabaseService.instance.client
           .from('profiles')
@@ -94,7 +94,7 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
   }
 
   Future<void> _loadStudios() async {
-    setState(() => _loadingStudios = true);
+    if (mounted) setState(() => _loadingStudios = true);
     try {
       final res = await SupabaseService.instance.client
           .from('studios')
