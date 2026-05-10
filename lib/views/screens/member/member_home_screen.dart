@@ -124,12 +124,10 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
     final sessions = context.watch<SessionController>().sessions;
     final sessionCtrl = context.watch<SessionController>();
     final bookings = context.watch<BookingController>().bookings;
-    final confirmedBookings = bookings
-        .where((booking) => booking.status == 'confirmed')
-        .toList();
-    final bookedSessionIds = confirmedBookings
-      .map((booking) => booking.sessionId)
-      .toSet();
+    final confirmedBookings =
+        bookings.where((booking) => booking.status == 'confirmed').toList();
+    final bookedSessionIds =
+        confirmedBookings.map((booking) => booking.sessionId).toSet();
 
     return Scaffold(
       appBar: const FlexAppBar(title: 'Fléx', badgeText: 'Member'),
@@ -240,7 +238,7 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Session ${booking.sessionId.substring(0, 6)}',
+                                  'Session ${sessions.firstWhere((s) => s.id == booking.sessionId).title}',
                                   style: AppTextStyles.body,
                                 ),
                                 const SizedBox(height: 2),

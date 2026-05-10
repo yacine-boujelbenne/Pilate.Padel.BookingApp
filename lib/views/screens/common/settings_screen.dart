@@ -85,7 +85,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 8),
           FlexSecondaryButton(
             label: 'Manage account',
-            onPressed: () => context.go('/account/manage', extra: '/member/profile'),
+            onPressed: () =>
+                context.go('/account/manage', extra: '/member/profile'),
           ),
           const SizedBox(height: 8),
           FlexPrimaryButton(
