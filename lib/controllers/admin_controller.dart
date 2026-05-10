@@ -10,43 +10,91 @@ class AdminController extends ChangeNotifier {
   Map<String, dynamic> _stats = {};
   List<Map<String, dynamic>> _users = [];
   List<Map<String, dynamic>> _coaches = [];
+  List<Map<String, dynamic>> _pendingValidations = [];
 
   bool get isLoading => _loading;
   String? get error => _error;
   Map<String, dynamic> get stats => _stats;
   List<Map<String, dynamic>> get users => _users;
   List<Map<String, dynamic>> get coaches => _coaches;
+  List<Map<String, dynamic>> get pendingValidations => _pendingValidations;
 
-  Future<void> fetchDashboardStats() async {
+  Future<void> refreshDashboardData() async {
     _setLoading(true);
     try {
+      _error = null;
+      await fetchDashboardStats();
+      await fetchAllUsers();
+      await fetchAllCoaches();
+      await fetchPendingValidations();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> fetchDashboardStats() async {
+    try {
+      // Simple lightweight queries - no heavy fallback scans
+      final activeMembersRes = await _client
+          .from('profiles')
+          .select('id')
+          .eq('role', 'member')
+          .eq('is_blocked', false)
+          .limit(10000);
+
+      final sessionsWeekRes = await _client
+          .from('sessions')
+          .select('id')
+          .gte('start_at', DateTime.now().toIso8601String())
+          .limit(10000);
+
+      final revenueRes = await _client
+          .from('bookings')
+          .select('paid_amount_tnd')
+          .eq('payment_status', 'paid')
+          .limit(1000);
+
+      final activeCoachesRes = await _client
+          .from('profiles')
+          .select('id')
+          .eq('role', 'coach')
+          .eq('is_blocked', false)
+          .limit(10000);
+
+      final revenueTnd = (revenueRes as List).fold<double>(0, (sum, row) {
+        final amount = (row as Map<String, dynamic>)['paid_amount_tnd'] as num?;
+        return sum + (amount?.toDouble() ?? 0);
+      });
+
+      _stats = {
+        'activeMembers': (activeMembersRes as List).length,
+        'sessionsWeek': (sessionsWeekRes as List).length,
+        'revenueTnd': revenueTnd,
+        'activeCoaches': (activeCoachesRes as List).length,
+      };
+    } catch (e) {
+      print('ERROR in fetchDashboardStats: $e');
+      _error ??= 'Failed loading dashboard stats: $e';
+      // Set default stats instead of erroring completely
       _stats = {
         'activeMembers': 0,
         'sessionsWeek': 0,
         'revenueTnd': 0.0,
         'activeCoaches': 0,
       };
-      _error = null;
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _setLoading(false);
     }
   }
 
   Future<void> fetchAllUsers() async {
-    _setLoading(true);
     try {
       final res = await _client
           .from('profiles')
           .select()
-          .order('created_at', ascending: false);
+          .limit(1000)  // Prevent full table scan
+          ; // No order to avoid timeout
       _users = (res as List).cast<Map<String, dynamic>>();
-      _error = null;
     } catch (e) {
-      _error = e.toString();
-    } finally {
-      _setLoading(false);
+      _error ??= 'Failed loading users: $e';
     }
   }
 
@@ -58,19 +106,41 @@ class AdminController extends ChangeNotifier {
   }
 
   Future<void> fetchAllCoaches() async {
-    _setLoading(true);
     try {
       final res = await _client
           .from('profiles')
           .select()
           .eq('role', 'coach')
-          .order('created_at');
-      _coaches = (res as List).cast<Map<String, dynamic>>();
-      _error = null;
+          ; // No order to avoid timeout
+      var coaches = (res as List).cast<Map<String, dynamic>>();
+      if (coaches.isEmpty) {
+        final fallback =
+            await _client.from('profiles').select().limit(1000);
+        coaches = (fallback as List)
+            .cast<Map<String, dynamic>>()
+            .where((row) =>
+                (row['role'] as String?)?.toLowerCase().trim() == 'coach')
+            .toList();
+      }
+      _coaches = coaches;
     } catch (e) {
-      _error = e.toString();
-    } finally {
-      _setLoading(false);
+      _error ??= 'Failed loading coaches: $e';
+    }
+  }
+
+  Future<void> fetchPendingValidations() async {
+    try {
+      final res = await _client
+          .from('bookings')
+          .select(
+            'id, booked_at, payment_method, payment_status, paid_amount_tnd, status, profiles!member_id(first_name, last_name), sessions!session_id(title, start_at)',
+          )
+        .eq('payment_status', 'pending')
+        .order('booked_at', ascending: false);
+
+      _pendingValidations = (res as List).cast<Map<String, dynamic>>();
+    } catch (e) {
+      _error ??= 'Failed loading pending validations: $e';
     }
   }
 
@@ -78,12 +148,14 @@ class AdminController extends ChangeNotifier {
     await _client
         .from('bookings')
         .update({'payment_status': 'paid'}).eq('id', bookingId);
+    await fetchPendingValidations();
   }
 
   Future<void> rejectPayment(String bookingId) async {
     await _client
         .from('bookings')
         .update({'payment_status': 'rejected'}).eq('id', bookingId);
+    await fetchPendingValidations();
   }
 
   void _setLoading(bool value) {

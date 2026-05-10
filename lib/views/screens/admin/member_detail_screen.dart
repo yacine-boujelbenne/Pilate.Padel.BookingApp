@@ -22,7 +22,11 @@ class MemberDetailScreen extends StatelessWidget {
         .firstOrNull;
 
     return Scaffold(
-      appBar: const FlexAppBar(title: 'Member Detail', showBack: true),
+      appBar: const FlexAppBar(
+        title: 'Member Detail',
+        showBack: true,
+        backTarget: '/admin/home',
+      ),
       body: user == null
           ? const Center(child: Text('User not found'))
           : ListView(

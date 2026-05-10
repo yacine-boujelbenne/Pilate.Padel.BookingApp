@@ -6,13 +6,17 @@ import '../views/screens/admin/add_coach_screen.dart';
 import '../views/screens/admin/admin_home_screen.dart';
 import '../views/screens/admin/admin_sessions_screen.dart';
 import '../views/screens/admin/edit_session_screen.dart';
+import '../views/screens/admin/admin_new_session_screen.dart';
 import '../views/screens/admin/member_detail_screen.dart';
+import '../views/screens/auth/forgot_password_screen.dart';
 import '../views/screens/auth/login_screen.dart';
 import '../views/screens/auth/register_screen.dart';
+import '../views/screens/auth/reset_password_screen.dart';
 import '../views/screens/auth/splash_screen.dart';
 import '../views/screens/coach/coach_home_screen.dart';
 import '../views/screens/coach/new_session_screen.dart';
 import '../views/screens/common/manage_account_screen.dart';
+import '../views/screens/common/session_attendees_screen.dart';
 import '../views/screens/common/settings_screen.dart';
 import '../views/screens/member/member_bookings_screen.dart';
 import '../views/screens/member/member_explore_screen.dart';
@@ -37,11 +41,21 @@ class AppRouter {
           path: '/register',
           builder: (context, state) => const RegisterScreen()),
       GoRoute(
+          path: '/forgot-password',
+          builder: (context, state) => const ForgotPasswordScreen()),
+      GoRoute(
+          path: '/reset-password',
+          builder: (context, state) => const ResetPasswordScreen()),
+      GoRoute(
           path: '/settings',
-          builder: (context, state) => const SettingsScreen()),
+          builder: (context, state) => SettingsScreen(
+                backTarget: (state.extra as String?) ?? '/login',
+              )),
       GoRoute(
           path: '/account/manage',
-          builder: (context, state) => const ManageAccountScreen()),
+          builder: (context, state) => ManageAccountScreen(
+                backTarget: (state.extra as String?) ?? '/member/profile',
+              )),
       GoRoute(
           path: '/member/home',
           builder: (context, state) => const MemberHomeScreen()),
@@ -83,6 +97,9 @@ class AppRouter {
       GoRoute(
           path: '/admin/coaches/new',
           builder: (context, state) => const AddCoachScreen()),
+        GoRoute(
+          path: '/admin/sessions/new',
+          builder: (context, state) => const AdminNewSessionScreen()),
       GoRoute(
           path: '/admin/sessions',
           builder: (context, state) => const AdminSessionsScreen()),
@@ -90,6 +107,13 @@ class AppRouter {
         path: '/admin/sessions/:id/edit',
         builder: (context, state) =>
             EditSessionScreen(sessionId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/sessions/:id/attendees',
+        builder: (context, state) => SessionAttendeesScreen(
+          sessionId: state.pathParameters['id']!,
+          backTarget: (state.extra as String?) ?? '/coach/home',
+        ),
       ),
       GoRoute(
         path: '/admin/users/:id',
@@ -105,7 +129,7 @@ class AppRouter {
     final profileLoaded = authController.profileLoaded;
     final path = state.matchedLocation;
 
-    final publicRoutes = {'/', '/login', '/register'};
+    final publicRoutes = {'/', '/login', '/register', '/forgot-password', '/reset-password'};
 
     if (isLoggedIn && !profileLoaded) {
       return null;

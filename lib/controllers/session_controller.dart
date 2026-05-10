@@ -26,11 +26,18 @@ class SessionController extends ChangeNotifier {
       final res = await _client
           .from('sessions')
           .select()
-          .eq('status', 'scheduled')
           .gte('start_at', dayStart)
           .lt('start_at', dayEnd)
           .order('start_at');
+      
+      // Filter for scheduled status with case-insensitive comparison
       _sessions = (res as List)
+          .where((e) =>
+              (e as Map<String, dynamic>)['status']
+                  .toString()
+                  .toLowerCase()
+                  .trim() ==
+              'scheduled')
           .map((e) => SessionModel.fromMap(e as Map<String, dynamic>))
           .toList();
       _error = null;
@@ -62,9 +69,18 @@ class SessionController extends ChangeNotifier {
       final res = await _client
           .from('session_edit_requests')
           .select()
-          .eq('status', 'pending')
           .order('created_at', ascending: false);
-      _editRequests = (res as List).cast<Map<String, dynamic>>();
+      
+      // Filter for pending status with case-insensitive comparison
+      _editRequests = (res as List)
+          .where((e) =>
+              (e as Map<String, dynamic>)['status']
+                  .toString()
+                  .toLowerCase()
+                  .trim() ==
+              'pending')
+          .cast<Map<String, dynamic>>()
+          .toList();
       _error = null;
     } catch (e) {
       _error = e.toString();

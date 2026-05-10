@@ -37,6 +37,10 @@ Future<void> main() async {
   final authController = AuthController()..listenAuthState();
   final appRouter = AppRouter(authController);
 
+  authController.passwordRecoveryStream.listen((_) {
+    appRouter.router.go('/reset-password');
+  });
+
   runApp(
       FlexPilatesApp(authController: authController, router: appRouter.router));
 }
