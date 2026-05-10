@@ -67,7 +67,6 @@ class CoachController extends ChangeNotifier {
           .select(
             'member_id, session_id, profiles!member_id(first_name, last_name, phone, speciality, role)',
           )
-          .eq('status', 'confirmed')
           .order('booked_at', ascending: false);
 
       final seenMembers = <String>{};
@@ -76,6 +75,11 @@ class CoachController extends ChangeNotifier {
         final booking = row as Map<String, dynamic>;
         final sessionId = booking['session_id'] as String?;
         final memberId = booking['member_id'] as String?;
+        
+        // Filter for confirmed status with case-insensitive comparison
+        final status = (booking['status'] as String?)?.toLowerCase().trim();
+        if (status != 'confirmed') continue;
+        
         if (sessionId == null || memberId == null) continue;
         if (!sessionIds.contains(sessionId) || seenMembers.contains(memberId)) {
           continue;
