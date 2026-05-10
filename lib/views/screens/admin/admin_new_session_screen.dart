@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../services/supabase_service.dart';
 import '../../../controllers/session_controller.dart';
-import '../../../controllers/admin_controller.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/form_fields.dart';
@@ -25,19 +24,16 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
   final _max = TextEditingController(text: '10');
   final _price = TextEditingController();
 
-  String? _selectedStudioId;
+  String _studio = 'Studio A';
   String _level = 'all';
   String? _selectedCoachId;
   List<Map<String, dynamic>> _coaches = [];
-  List<Map<String, dynamic>> _studios = [];
   bool _loadingCoaches = false;
-  bool _loadingStudios = false;
 
   @override
   void initState() {
     super.initState();
     _loadCoaches();
-    _loadStudios();
   }
 
   @override
@@ -56,45 +52,22 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
     try {
       final res = await SupabaseService.instance.client
           .from('profiles')
-          .select('id, first_name, last_name, role, speciality')
-          .limit(1000)  // Prevent full table scan
-          ; // No server-side order to avoid timeout
-      
-      final allProfiles = (res as List).cast<Map<String, dynamic>>();
-      // Sort client-side if needed
-      allProfiles.sort((a, b) {
-        final aName = ((a['first_name'] as String?) ?? '').toLowerCase();
-        final bName = ((b['first_name'] as String?) ?? '').toLowerCase();
-        return aName.compareTo(bName);
-      });
-      print('DEBUG: Total profiles loaded: ${allProfiles.length}');
-      
-      // Filter coaches with case-insensitive comparison
-      _coaches = allProfiles
-          .where((p) {
-            final role = (p['role'] as String?)?.toLowerCase().trim();
-            print('DEBUG: Profile role: $role');
-            return role == 'coach';
-          })
-          .toList();
-      
-      print('DEBUG: Coaches found: ${_coaches.length}');
-      
+          .select('id, first_name, last_name')
+          .eq('role', 'coach')
+          .order('first_name');
+      _coaches = (res as List).cast<Map<String, dynamic>>();
       if (_coaches.isNotEmpty) {
         _selectedCoachId = _coaches.first['id'] as String?;
       }
-    } catch (e, stackTrace) {
-      print('ERROR loading coaches: $e\n$stackTrace');
-      if (mounted) {
-        ToastMessage.show(context, 'Could not load coaches: $e');
-      }
+    } catch (e) {
+      if (mounted) ToastMessage.show(context, 'Could not load coaches');
     } finally {
       if (mounted) setState(() => _loadingCoaches = false);
     }
   }
 
   Future<void> _loadStudios() async {
-    if (mounted) setState(() => _loadingStudios = true);
+    setState(() => _loadingStudios = true);
     try {
       final res = await SupabaseService.instance.client
           .from('studios')
@@ -186,7 +159,7 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
     try {
       await context.read<SessionController>().createSession({
         'coach_id': _selectedCoachId,
-        'studio_id': _selectedStudioId,
+        'studio_id': null,
         'title': _title.text.trim(),
         'level': _level,
         'start_at': startAt.toIso8601String(),
@@ -226,31 +199,9 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
             const Center(child: CircularProgressIndicator())
           else ...[
             if (_coaches.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.orange, width: 1),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'No coaches found',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.orange,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'To create a session, you need at least one coach account. '
-                      'Coaches can sign up through the app or be created via database.',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ],
-                ),
+              const Padding(
+                padding: EdgeInsets.all(12),
+                child: Text('No coaches available'),
               )
             else
               Column(
@@ -258,14 +209,13 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
                 children: [
                   const Text('Assign Coach'),
                   const SizedBox(height: 8),
-                  DropdownButton<String>(
-                    value: _selectedCoachId,
-                    isExpanded: true,
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedCoachId,
                     items: _coaches
                         .map((c) => DropdownMenuItem(
                               value: c['id'] as String,
                               child: Text(
-                                  '${c['first_name'] ?? ''} ${c['last_name'] ?? ''} - ${c['speciality'] ?? 'N/A'}'),
+                                  '${c['first_name'] ?? ''} ${c['last_name'] ?? ''}'),
                             ))
                         .toList(),
                     onChanged: (v) => setState(() => _selectedCoachId = v),
@@ -274,7 +224,6 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
                 ],
               ),
           ],
-
           FlexFormInput(controller: _title, hint: 'Session name'),
           const SizedBox(height: 8),
           FlexFormInput(controller: _date, hint: 'Date (YYYY-MM-DD)'),
@@ -290,54 +239,14 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          if (_loadingStudios)
-            const Center(child: CircularProgressIndicator())
-          else if (_studios.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange, width: 1),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'No studios found',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.orange,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'At least one studio needs to be created in the database.',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            )
-          else
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Select Studio'),
-                const SizedBox(height: 8),
-                DropdownButton<String>(
-                  value: _selectedStudioId,
-                  isExpanded: true,
-                  items: _studios
-                      .map((s) => DropdownMenuItem(
-                            value: s['id'] as String,
-                            child: Text(s['name'] as String),
-                          ))
-                      .toList(),
-                  onChanged: (v) => setState(() => _selectedStudioId = v),
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
+          FlexDropdown(
+            value: _studio,
+            items: const [
+              DropdownMenuItem(value: 'Studio A', child: Text('Studio A')),
+              DropdownMenuItem(value: 'Studio B', child: Text('Studio B')),
+            ],
+            onChanged: (v) => setState(() => _studio = v ?? 'Studio A'),
+          ),
           const SizedBox(height: 8),
           FlexFormInput(
               controller: _max,
