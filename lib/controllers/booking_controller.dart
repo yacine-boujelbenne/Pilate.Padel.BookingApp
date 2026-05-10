@@ -44,11 +44,19 @@ class BookingController extends ChangeNotifier {
 
       final existing = await _client
           .from('bookings')
-          .select('id')
+          .select('id, status')
           .eq('member_id', uid)
-          .eq('session_id', sessionId)
-          .eq('status', 'confirmed');
-      if ((existing as List).isNotEmpty) {
+          .eq('session_id', sessionId);
+      
+      // Check for existing confirmed bookings with case-insensitive status
+      final hasConfirmed = (existing as List).any((e) =>
+          (e as Map<String, dynamic>)['status']
+              .toString()
+              .toLowerCase()
+              .trim() ==
+          'confirmed');
+      
+      if (hasConfirmed) {
         throw Exception("You're already booked!");
       }
 
@@ -149,7 +157,15 @@ class BookingController extends ChangeNotifier {
           .eq('status', 'confirmed')
           .order('booked_at', ascending: false);
 
-      _sessionBookings = (res as List).map((e) {
+      // Filter for confirmed status with case-insensitive comparison
+      _sessionBookings = (res as List)
+          .where((e) =>
+              (e as Map<String, dynamic>)['status']
+                  .toString()
+                  .toLowerCase()
+                  .trim() ==
+              'confirmed')
+          .map((e) {
         final booking = e as Map<String, dynamic>;
         final profile = booking['profiles'] as Map<String, dynamic>?;
         return BookingDetail(
