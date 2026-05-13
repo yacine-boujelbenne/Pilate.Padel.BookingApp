@@ -19,6 +19,7 @@ import '../views/screens/common/manage_account_screen.dart';
 import '../views/screens/common/session_attendees_screen.dart';
 import '../views/screens/common/settings_screen.dart';
 import '../views/screens/member/member_bookings_screen.dart';
+import '../views/screens/member/member_coach_detail_screen.dart';
 import '../views/screens/member/member_explore_screen.dart';
 import '../views/screens/member/member_home_screen.dart';
 import '../views/screens/member/member_profile_screen.dart';
@@ -63,6 +64,11 @@ class AppRouter {
           path: '/member/explore',
           builder: (context, state) => const MemberExploreScreen()),
       GoRoute(
+          path: '/member/coaches/:id',
+          builder: (context, state) => MemberCoachDetailScreen(
+                coachId: state.pathParameters['id']!,
+              )),
+      GoRoute(
           path: '/member/bookings',
           builder: (context, state) => const MemberBookingsScreen()),
       GoRoute(
@@ -97,7 +103,7 @@ class AppRouter {
       GoRoute(
           path: '/admin/coaches/new',
           builder: (context, state) => const AddCoachScreen()),
-        GoRoute(
+      GoRoute(
           path: '/admin/sessions/new',
           builder: (context, state) => const AdminNewSessionScreen()),
       GoRoute(
@@ -129,7 +135,13 @@ class AppRouter {
     final profileLoaded = authController.profileLoaded;
     final path = state.matchedLocation;
 
-    final publicRoutes = {'/', '/login', '/register', '/forgot-password', '/reset-password'};
+    final publicRoutes = {
+      '/',
+      '/login',
+      '/register',
+      '/forgot-password',
+      '/reset-password'
+    };
 
     if (isLoggedIn && !profileLoaded) {
       return null;

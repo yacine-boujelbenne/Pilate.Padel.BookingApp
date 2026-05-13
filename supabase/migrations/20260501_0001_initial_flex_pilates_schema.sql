@@ -267,6 +267,15 @@ using (
   )
 );
 
+create policy "profiles_select_active_coaches"
+on public.profiles
+for select
+to authenticated
+using (
+  role = 'coach'
+  and is_blocked = false
+);
+
 create policy "profiles_insert_self"
 on public.profiles
 for insert

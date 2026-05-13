@@ -20,11 +20,30 @@ class AdminHomeScreen extends StatefulWidget {
 }
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(_handleSearchChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AdminController>().refreshDashboardData();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController
+      ..removeListener(_handleSearchChanged)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleSearchChanged() {
+    if (!mounted) return;
+    setState(() {
+      _searchQuery = _searchController.text.trim().toLowerCase();
     });
   }
 
@@ -32,7 +51,26 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   Widget build(BuildContext context) {
     final admin = context.watch<AdminController>();
     final auth = context.watch<AuthController>();
-    final searchController = TextEditingController();
+    final activeMembers = admin.users.where((user) {
+      final role = (user['role'] as String?)?.toLowerCase().trim();
+      final isBlocked = user['is_blocked'] == true;
+      if (role != 'member' || isBlocked) {
+        return false;
+      }
+
+      if (_searchQuery.isEmpty) {
+        return true;
+      }
+
+      final haystack = [
+        user['first_name'],
+        user['last_name'],
+        user['phone'],
+        user['member_tier'],
+      ].whereType<String>().join(' ').toLowerCase();
+
+      return haystack.contains(_searchQuery);
+    }).toList();
 
     return Scaffold(
       appBar: FlexAppBar(
@@ -185,50 +223,53 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               );
             }),
           const SizedBox(height: 12),
-          Text('MANAGE USERS', style: AppTextStyles.sectionLabel),
+          Text('ACTIVE MEMBERS', style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
-          FlexFormInput(controller: searchController, hint: 'Search user...'),
+          FlexFormInput(
+              controller: _searchController, hint: 'Search member...'),
           const SizedBox(height: 8),
-          if (admin.users.isEmpty)
+          if (activeMembers.isEmpty)
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Text('No users available', style: AppTextStyles.body),
+              child: Text(
+                _searchQuery.isEmpty
+                    ? 'No active members available'
+                    : 'No members match your search',
+                style: AppTextStyles.body,
+              ),
             )
           else
-            ...admin.users.take(3).map(
-                  (u) => Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(14)),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: Text(
-                                '${u['first_name'] ?? ''} ${u['last_name'] ?? ''}')),
-                        const ChipBadge(
-                            text: 'Plan', variant: ChipBadgeVariant.amber),
-                        const SizedBox(width: 6),
-                        ChipBadge(
-                            text:
-                                u['is_blocked'] == true ? 'Blocked' : 'Active',
-                            variant: u['is_blocked'] == true
-                                ? ChipBadgeVariant.red
-                                : ChipBadgeVariant.green),
-                        const SizedBox(width: 6),
-                        TextButton(
-                            onPressed: () =>
-                                context.push('/admin/users/${u['id']}'),
-                            child: const Text('View')),
-                      ],
-                    ),
-                  ),
+            ...activeMembers.map(
+              (u) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(14)),
+                child: Row(
+                  children: [
+                    Expanded(
+                        child: Text(
+                            '${u['first_name'] ?? ''} ${u['last_name'] ?? ''}')),
+                    ChipBadge(
+                        text: '${u['member_tier'] ?? 'Standard'}',
+                        variant: ChipBadgeVariant.amber),
+                    const SizedBox(width: 6),
+                    const ChipBadge(
+                        text: 'Active', variant: ChipBadgeVariant.green),
+                    const SizedBox(width: 6),
+                    TextButton(
+                        onPressed: () =>
+                            context.push('/admin/users/${u['id']}'),
+                        child: const Text('View')),
+                  ],
                 ),
+              ),
+            ),
           const SizedBox(height: 12),
           Text('COACHES', style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),

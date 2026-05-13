@@ -73,7 +73,7 @@ class AdminController extends ChangeNotifier {
         'activeCoaches': (activeCoachesRes as List).length,
       };
     } catch (e) {
-      print('ERROR in fetchDashboardStats: $e');
+      debugPrint('ERROR in fetchDashboardStats: $e');
       _error ??= 'Failed loading dashboard stats: $e';
       // Set default stats instead of erroring completely
       _stats = {
@@ -87,12 +87,24 @@ class AdminController extends ChangeNotifier {
 
   Future<void> fetchAllUsers() async {
     try {
-      final res = await _client
-          .from('profiles')
-          .select()
-          .limit(1000)  // Prevent full table scan
-          ; // No order to avoid timeout
-      _users = (res as List).cast<Map<String, dynamic>>();
+      const pageSize = 1000;
+      var from = 0;
+      final rows = <Map<String, dynamic>>[];
+
+      while (true) {
+        final res = await _client
+            .from('profiles')
+            .select()
+            .range(from, from + pageSize - 1);
+        final batch = (res as List).cast<Map<String, dynamic>>();
+        rows.addAll(batch);
+        if (batch.length < pageSize) {
+          break;
+        }
+        from += pageSize;
+      }
+
+      _users = rows;
     } catch (e) {
       _error ??= 'Failed loading users: $e';
     }
@@ -110,12 +122,10 @@ class AdminController extends ChangeNotifier {
       final res = await _client
           .from('profiles')
           .select()
-          .eq('role', 'coach')
-          ; // No order to avoid timeout
+          .eq('role', 'coach'); // No order to avoid timeout
       var coaches = (res as List).cast<Map<String, dynamic>>();
       if (coaches.isEmpty) {
-        final fallback =
-            await _client.from('profiles').select().limit(1000);
+        final fallback = await _client.from('profiles').select().limit(1000);
         coaches = (fallback as List)
             .cast<Map<String, dynamic>>()
             .where((row) =>
@@ -135,8 +145,8 @@ class AdminController extends ChangeNotifier {
           .select(
             'id, booked_at, payment_method, payment_status, paid_amount_tnd, status, profiles!member_id(first_name, last_name), sessions!session_id(title, start_at)',
           )
-        .eq('payment_status', 'pending')
-        .order('booked_at', ascending: false);
+          .eq('payment_status', 'pending')
+          .order('booked_at', ascending: false);
 
       _pendingValidations = (res as List).cast<Map<String, dynamic>>();
     } catch (e) {

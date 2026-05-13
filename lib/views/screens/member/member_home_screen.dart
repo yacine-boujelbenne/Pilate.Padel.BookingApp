@@ -225,37 +225,43 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
                   )
                 else
                   ...confirmedBookings.map(
-                    (booking) => Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(16)),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Session ${sessions.firstWhere((s) => s.id == booking.sessionId).title}',
-                                  style: AppTextStyles.body,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Booked ${booking.bookedAt.day}/${booking.bookedAt.month}/${booking.bookedAt.year}',
-                                  style: AppTextStyles.sessionMeta,
-                                ),
-                              ],
+                    (booking) {
+                      final idx =
+                          sessions.indexWhere((s) => s.id == booking.sessionId);
+                      final sessionTitle =
+                          idx != -1 ? sessions[idx].title : 'Unknown session';
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(16)),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Session $sessionTitle',
+                                    style: AppTextStyles.body,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Booked ${booking.bookedAt.day}/${booking.bookedAt.month}/${booking.bookedAt.year}',
+                                    style: AppTextStyles.sessionMeta,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const ChipBadge(
-                            text: 'Upcoming',
-                            variant: ChipBadgeVariant.amber,
-                          ),
-                        ],
-                      ),
-                    ),
+                            const ChipBadge(
+                              text: 'Upcoming',
+                              variant: ChipBadgeVariant.amber,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
               ],
             ),

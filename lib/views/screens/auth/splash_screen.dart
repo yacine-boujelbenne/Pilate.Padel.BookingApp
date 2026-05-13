@@ -13,6 +13,14 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool get _hasPasswordRecoveryParams {
+    final uri = Uri.base;
+    return uri.queryParameters.containsKey('code') ||
+        uri.queryParameters['type'] == 'recovery' ||
+        uri.fragment.contains('recovery') ||
+        uri.fragment.contains('access_token');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -20,6 +28,10 @@ class _SplashScreenState extends State<SplashScreen> {
       final auth = context.read<AuthController>();
       await Future<void>.delayed(const Duration(milliseconds: 700));
       if (!mounted) return;
+      if (_hasPasswordRecoveryParams) {
+        context.go('/reset-password');
+        return;
+      }
       if (auth.user == null) {
         context.go('/login');
         return;

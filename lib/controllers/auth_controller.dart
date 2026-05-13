@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/profile.dart';
@@ -10,6 +10,13 @@ class AuthController extends ChangeNotifier {
   final _client = SupabaseService.instance.client;
   final _passwordRecoveryController = StreamController<void>.broadcast();
   Stream<void> get passwordRecoveryStream => _passwordRecoveryController.stream;
+
+  String get _passwordResetRedirectUrl {
+    if (kIsWeb) {
+      return Uri.parse('${Uri.base.origin}/reset-password').toString();
+    }
+    return 'https://fxpbjztsyucdujwgrhji.supabase.co/functions/v1/auth-redirect';
+  }
 
   User? _user;
   Profile? _profile;
@@ -168,8 +175,7 @@ class AuthController extends ChangeNotifier {
     try {
       await _client.auth.resetPasswordForEmail(
         email,
-        redirectTo:
-            'https://fxpbjztsyucdujwgrhji.supabase.co/functions/v1/auth-redirect',
+        redirectTo: _passwordResetRedirectUrl,
       );
       _error = null;
     } catch (e) {
