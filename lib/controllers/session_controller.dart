@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/session_model.dart';
+import '../services/session_notification_service.dart';
 import '../services/supabase_service.dart';
 
 class SessionController extends ChangeNotifier {
@@ -29,7 +30,7 @@ class SessionController extends ChangeNotifier {
           .gte('start_at', dayStart)
           .lt('start_at', dayEnd)
           .order('start_at');
-      
+
       // Filter for scheduled status with case-insensitive comparison
       _sessions = (res as List)
           .where((e) =>
@@ -70,7 +71,7 @@ class SessionController extends ChangeNotifier {
           .from('session_edit_requests')
           .select()
           .order('created_at', ascending: false);
-      
+
       // Filter for pending status with case-insensitive comparison
       _editRequests = (res as List)
           .where((e) =>
@@ -204,6 +205,35 @@ class SessionController extends ChangeNotifier {
   }
 
   Future<void> cancelSession(String id) async {
+    // Find the session to get its title for the notification
+    final session = _sessions.firstWhere(
+      (s) => s.id == id,
+      orElse: () => SessionModel(
+        id: id,
+        coachName: 'Coach',
+        studioName: 'Studio',
+        title: 'Session',
+        level: 'all',
+        startAt: DateTime.now(),
+        endAt: DateTime.now(),
+        maxParticipants: 0,
+        bookedCount: 0,
+        priceTnd: 0,
+        status: 'scheduled',
+      ),
+    );
+
+    // Notify all enrolled members before cancelling
+    try {
+      await SessionNotificationService().notifySessionCancelled(
+        sessionId: id,
+        sessionTitle: session.title,
+      );
+    } catch (e) {
+      debugPrint('Failed to notify members of session cancellation: $e');
+      // Continue with cancellation even if notification fails
+    }
+
     await updateSession(id, {'status': 'cancelled'});
   }
 

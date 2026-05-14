@@ -24,7 +24,9 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
   final _max = TextEditingController(text: '10');
   final _price = TextEditingController();
 
-  String _studio = 'Studio A';
+  String? _selectedStudioId;
+  List<Map<String, dynamic>> _studios = [];
+  bool _loadingStudios = false;
   String _level = 'all';
   String? _selectedCoachId;
   List<Map<String, dynamic>> _coaches = [];
@@ -34,6 +36,7 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
   void initState() {
     super.initState();
     _loadCoaches();
+    _loadStudios();
   }
 
   @override
@@ -63,6 +66,28 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
       if (mounted) ToastMessage.show(context, 'Could not load coaches');
     } finally {
       setState(() => _loadingCoaches = false);
+    }
+  }
+
+  Future<void> _loadStudios() async {
+    setState(() => _loadingStudios = true);
+    try {
+      final res = await SupabaseService.instance.client
+          .from('studios')
+          .select('id, name')
+          .order('name');
+      _studios = (res as List).cast<Map<String, dynamic>>();
+      if (_studios.isNotEmpty) {
+        _selectedStudioId = _studios.first['id'] as String?;
+      }
+    } catch (e) {
+      if (mounted) {
+        ToastMessage.show(context, 'Could not load studios');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loadingStudios = false);
+      }
     }
   }
 
@@ -137,7 +162,7 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
     try {
       await context.read<SessionController>().createSession({
         'coach_id': _selectedCoachId,
-        'studio_id': null,
+        'studio_id': _selectedStudioId,
         'title': _title.text.trim(),
         'level': _level,
         'start_at': startAt.toIso8601String(),
@@ -217,15 +242,31 @@ class _AdminNewSessionScreenState extends State<AdminNewSessionScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          FlexDropdown(
-            value: _studio,
-            items: const [
-              DropdownMenuItem(value: 'Studio A', child: Text('Studio A')),
-              DropdownMenuItem(value: 'Studio B', child: Text('Studio B')),
-            ],
-            onChanged: (v) => setState(() => _studio = v ?? 'Studio A'),
-          ),
-          const SizedBox(height: 8),
+          if (_loadingStudios)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_studios.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text('No studios available'),
+            )
+          else ...[
+            const Text('Studio'),
+            const SizedBox(height: 8),
+            FlexDropdown(
+              value: _selectedStudioId,
+              items: _studios
+                  .map((studio) => DropdownMenuItem<String>(
+                        value: studio['id'] as String,
+                        child: Text(studio['name'] as String? ?? 'Studio'),
+                      ))
+                  .toList(),
+              onChanged: (value) => setState(() => _selectedStudioId = value),
+            ),
+            const SizedBox(height: 8),
+          ],
           FlexFormInput(
               controller: _max,
               hint: 'Max participants',

@@ -18,6 +18,13 @@ class AuthController extends ChangeNotifier {
     return 'https://fxpbjztsyucdujwgrhji.supabase.co/functions/v1/auth-redirect';
   }
 
+  String get _emailConfirmationRedirectUrl {
+    if (kIsWeb) {
+      return Uri.parse('${Uri.base.origin}/login').toString();
+    }
+    return 'https://fxpbjztsyucdujwgrhji.supabase.co/functions/v1/auth-confirm';
+  }
+
   User? _user;
   Profile? _profile;
   bool _profileLoaded = false;
@@ -82,6 +89,7 @@ class AuthController extends ChangeNotifier {
       final response = await _client.auth.signUp(
         email: email,
         password: password,
+        emailRedirectTo: _emailConfirmationRedirectUrl,
         data: {
           'role': 'member',
           'first_name': firstName,

@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/session_model.dart';
 import 'supabase_service.dart';
@@ -46,13 +47,22 @@ class CoachDirectoryService {
         .from('profiles')
         .select('id, first_name, last_name, speciality, avatar_url')
         .eq('role', 'coach')
-        .eq('is_blocked', false)
-        .order('first_name');
+        .eq('is_blocked', false);
 
-    return (res as List)
-        .cast<Map<String, dynamic>>()
-        .map(CoachDirectoryEntry.fromMap)
-        .toList();
+    List<Map<String, dynamic>> rows = [];
+    rows = res.cast<Map<String, dynamic>>();
+
+    // sort by first_name client-side to avoid server-side ordering differences
+    rows.sort((a, b) => ((a['first_name'] as String?) ?? '')
+        .toLowerCase()
+        .compareTo(((b['first_name'] as String?) ?? '').toLowerCase()));
+
+    if (kDebugMode) {
+      debugPrint(
+          'CoachDirectoryService.fetchVisibleCoaches returned ${rows.length} rows');
+    }
+
+    return rows.map(CoachDirectoryEntry.fromMap).toList();
   }
 
   Future<CoachDirectoryCoachDetails?> fetchCoachDetails(String coachId) async {
@@ -77,10 +87,28 @@ class CoachDirectoryService {
         .select(
           'id, title, start_at, end_at, max_participants, booked_count, price_tnd, level, status, studios(name)',
         )
-        .eq('coach_id', coachId)
-        .order('start_at');
+        .eq('coach_id', coachId);
 
-    return (res as List).map((row) {
+    List<dynamic> rawRows = [];
+    rawRows = res;
+
+    // sort sessions by start_at client-side
+    rawRows.sort((a, b) {
+      final am = a is Map ? a['start_at'] : (a as Map)['start_at'];
+      final bm = b is Map ? b['start_at'] : (b as Map)['start_at'];
+      final ad = DateTime.tryParse(am?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0);
+      final bd = DateTime.tryParse(bm?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0);
+      return ad.compareTo(bd);
+    });
+
+    if (kDebugMode) {
+      debugPrint(
+          'CoachDirectoryService.fetchCoachRelatedSessions returned ${rawRows.length} rows for coach $coachId');
+    }
+
+    return rawRows.map((row) {
       final map = Map<String, dynamic>.from(row as Map);
       final studio = map['studios'] as Map<String, dynamic>?;
       return SessionModel.fromMap({

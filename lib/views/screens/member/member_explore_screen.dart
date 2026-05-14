@@ -60,6 +60,7 @@ class _MemberExploreScreenState extends State<MemberExploreScreen> {
           ..clear()
           ..addAll(coaches);
       });
+      debugPrint('Loaded ${coaches.length} coaches');
     } catch (e) {
       if (!mounted) return;
       setState(() {
