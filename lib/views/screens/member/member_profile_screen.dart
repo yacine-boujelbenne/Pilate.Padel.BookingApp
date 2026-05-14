@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
+import '../../../services/member_profile_summary_service.dart';
 import '../../widgets/avatar_widget.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/chip_badge.dart';
@@ -11,12 +12,29 @@ import '../../widgets/flex_app_bar.dart';
 import '../../widgets/flex_bottom_nav.dart';
 import '../../widgets/stat_card.dart';
 
+String _capitalize(String value) {
+  if (value.isEmpty) return value;
+  return value[0].toUpperCase() + value.substring(1).toLowerCase();
+}
+
 class MemberProfileScreen extends StatelessWidget {
   const MemberProfileScreen({super.key});
 
+  static final MemberProfileSummaryService _summaryService =
+      MemberProfileSummaryService();
+
   @override
   Widget build(BuildContext context) {
-    final profile = context.watch<AuthController>().profile;
+    final auth = context.watch<AuthController>();
+    final profile = auth.profile;
+    final summaryFuture = profile == null
+        ? null
+        : _summaryService.fetch(
+            memberId: profile.id,
+            createdAt: profile.createdAt,
+            memberTier: profile.memberTier,
+          );
+
     return Scaffold(
       appBar: const FlexAppBar(title: 'Profile', badgeText: 'Member'),
       bottomNavigationBar: FlexBottomNav(
@@ -38,35 +56,72 @@ class MemberProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Center(
-              child: AvatarWidget(
-                  initials: profile?.firstName.substring(0, 1) ?? 'M',
-                  size: 72)),
+            child: AvatarWidget(
+              initials: profile?.firstName.isNotEmpty == true
+                  ? profile!.firstName[0]
+                  : 'M',
+              size: 72,
+            ),
+          ),
           const SizedBox(height: 10),
           Center(
-              child: Text(profile?.fullName ?? 'Member',
-                  style: AppTextStyles.modalTitle
-                      .copyWith(fontWeight: FontWeight.bold))),
-          Center(
-              child: Text(context.read<AuthController>().user?.email ?? '',
-                  style: AppTextStyles.sessionMeta)),
-          const SizedBox(height: 6),
-          const Center(
-              child: ChipBadge(
-                  text: 'Gold Member', variant: ChipBadgeVariant.green)),
-          const SizedBox(height: 14),
-          GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            children: const [
-              StatCard(value: '22', label: 'Sessions done'),
-              StatCard(value: '8', label: 'Sessions left'),
-              StatCard(value: '4.8', label: 'Avg rating'),
-              StatCard(value: '14', label: 'Months active'),
-            ],
+            child: Text(
+              profile?.fullName ?? 'Member',
+              style: AppTextStyles.modalTitle
+                  .copyWith(fontWeight: FontWeight.bold),
+            ),
           ),
+          Center(
+            child:
+                Text(auth.user?.email ?? '', style: AppTextStyles.sessionMeta),
+          ),
+          const SizedBox(height: 6),
+          Center(
+            child: ChipBadge(
+              text: '${_capitalize(profile?.memberTier ?? 'standard')} Member',
+              variant: ChipBadgeVariant.green,
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (profile == null)
+            const Center(child: CircularProgressIndicator())
+          else
+            FutureBuilder<MemberProfileSummary>(
+              future: summaryFuture,
+              builder: (context, snapshot) {
+                final summary = snapshot.data;
+                if (snapshot.connectionState == ConnectionState.waiting &&
+                    summary == null) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                return GridView.count(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    StatCard(
+                      value: '${summary?.sessionsDone ?? 0}',
+                      label: 'Sessions done',
+                    ),
+                    StatCard(
+                      value: '${summary?.sessionsLeft ?? 0}',
+                      label: 'Sessions left',
+                    ),
+                    StatCard(
+                      value: (summary?.ratingScore ?? 0).toStringAsFixed(1),
+                      label: 'Avg rating',
+                    ),
+                    StatCard(
+                      value: '${summary?.monthsActive ?? 0}',
+                      label: 'Months active',
+                    ),
+                  ],
+                );
+              },
+            ),
           const SizedBox(height: 16),
           FlexPrimaryButton(
             label: 'Manage account',
@@ -81,7 +136,7 @@ class MemberProfileScreen extends StatelessWidget {
           FlexSecondaryButton(
             label: 'Sign out',
             onPressed: () async {
-              await context.read<AuthController>().signOut();
+              await auth.signOut();
               if (context.mounted) context.go('/login');
             },
           ),

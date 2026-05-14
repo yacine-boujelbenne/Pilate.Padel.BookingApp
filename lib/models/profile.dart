@@ -8,6 +8,7 @@ class Profile {
   final String? avatarUrl;
   final bool isBlocked;
   final String memberTier;
+  final DateTime createdAt;
 
   const Profile({
     required this.id,
@@ -19,6 +20,7 @@ class Profile {
     this.avatarUrl,
     this.isBlocked = false,
     this.memberTier = 'standard',
+    required this.createdAt,
   });
 
   String get fullName => '$firstName $lastName';
@@ -34,6 +36,7 @@ class Profile {
       avatarUrl: map['avatar_url'] as String?,
       isBlocked: (map['is_blocked'] as bool?) ?? false,
       memberTier: (map['member_tier'] as String?) ?? 'standard',
+      createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
 }
