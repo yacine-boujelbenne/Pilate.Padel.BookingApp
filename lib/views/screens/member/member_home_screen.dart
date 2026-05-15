@@ -18,6 +18,7 @@ import '../../widgets/payment_modal.dart';
 import '../../widgets/session_card.dart';
 import '../../widgets/toast_message.dart';
 import '../../widgets/waitlist_modal.dart';
+import '../../../l10n/locale_text.dart';
 
 class MemberHomeScreen extends StatefulWidget {
   const MemberHomeScreen({super.key});
@@ -34,10 +35,32 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SessionController>().fetchSessionsByDate(_selectedDate);
+      context.read<SessionController>().fetchAllSessions();
       context.read<BookingController>().fetchMemberBookings();
+      context.read<WaitlistController>().fetchMemberWaitlists();
       context.read<BookingController>().subscribeRealtime();
       context.read<WaitlistController>().subscribeRealtime();
     });
+  }
+
+  Future<void> _cancelBooking(String bookingId) async {
+    try {
+      await context.read<BookingController>().cancelBooking(bookingId);
+      if (!mounted) return;
+      await context
+          .read<SessionController>()
+          .fetchSessionsByDate(_selectedDate);
+      if (!mounted) return;
+      ToastMessage.show(
+          context, context.t('Booking cancelled', 'Réservation annulée'));
+    } catch (_) {
+      if (mounted) {
+        ToastMessage.show(
+            context,
+            context.t('Could not cancel booking. Please try again.',
+                'Impossible d\'annuler la réservation. Veuillez réessayer.'));
+      }
+    }
   }
 
   Future<void> _openBookingFlow(SessionModel session) async {
@@ -76,8 +99,11 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
                   });
                 } catch (_) {
                   if (mounted) {
-                    ToastMessage.show(context,
-                        'Could not complete booking. Please try again.');
+                    ToastMessage.show(
+                        context,
+                        context.t(
+                            'Could not complete booking. Please try again.',
+                            'Impossible de terminer la réservation. Veuillez réessayer.'));
                   }
                 }
               },
@@ -106,11 +132,17 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
             await waitlist.joinWaitlist(
                 sessionId: session.id, notifyChannel: channel);
             if (mounted) {
-              ToastMessage.show(context, 'Added to waitlist');
+              ToastMessage.show(
+                  context,
+                  context.t(
+                      'Added to waitlist', 'Ajouté à la liste d\'attente'));
             }
           } catch (_) {
             if (mounted) {
-              ToastMessage.show(context, 'Could not join waitlist');
+              ToastMessage.show(
+                  context,
+                  context.t('Could not join waitlist',
+                      'Impossible de rejoindre la liste d\'attente'));
             }
           }
         },
@@ -122,15 +154,34 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
     final sessions = context.watch<SessionController>().sessions;
+    final allSessions = context.watch<SessionController>().allSessions;
     final sessionCtrl = context.watch<SessionController>();
     final bookings = context.watch<BookingController>().bookings;
+    final waitlistEntries = context.watch<WaitlistController>().entries;
     final confirmedBookings =
         bookings.where((booking) => booking.status == 'confirmed').toList();
     final bookedSessionIds =
         confirmedBookings.map((booking) => booking.sessionId).toSet();
+    final confirmedBookingBySessionId = {
+      for (final booking in confirmedBookings) booking.sessionId: booking,
+    };
+    final waitlistedSessionIds =
+        waitlistEntries.map((entry) => entry.sessionId).toSet();
+    final sessionsById = {
+      for (final session in [...sessions, ...allSessions]) session.id: session,
+    };
 
     return Scaffold(
-      appBar: const FlexAppBar(title: 'Fléx', badgeText: 'Member'),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/member/chatbot'),
+        backgroundColor: AppColors.sageDark,
+        child: const Icon(Icons.chat_bubble_outline, color: AppColors.white),
+      ),
+      appBar: const FlexAppBar(
+        title: 'Fléx',
+        badgeText: 'Member',
+        showBack: false,
+      ),
       bottomNavigationBar: FlexBottomNav(
         currentIndex: 0,
         onTap: (index) {
@@ -169,11 +220,11 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                                'Good morning, ${auth.profile?.firstName ?? 'Member'} ☀️',
+                                '${context.t('Good morning', 'Bonjour')}, ${auth.profile?.firstName ?? context.t('Member', 'Membre')} ☀️',
                                 style: AppTextStyles.body
                                     .copyWith(fontWeight: FontWeight.w700)),
                             Text(
-                                '${auth.profile?.memberTier ?? 'Standard'} member',
+                                '${auth.profile?.memberTier ?? context.t('Standard', 'Standard')} ${context.t('member', 'membre')}',
                                 style: AppTextStyles.sessionMeta),
                           ],
                         ),
@@ -190,26 +241,44 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                Text('AVAILABLE SESSIONS', style: AppTextStyles.sectionLabel),
+                Text(context.t('AVAILABLE SESSIONS', 'SÉANCES DISPONIBLES'),
+                    style: AppTextStyles.sectionLabel),
                 const SizedBox(height: 8),
                 if (sessions.isEmpty)
-                  const Center(
+                  Center(
                       child: Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Text('No sessions for selected day'))),
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                              context.tr('No sessions for selected day')))),
                 ...sessions.map(
                   (s) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: SessionCard(
                       session: s,
                       isBooked: bookedSessionIds.contains(s.id),
+                      onWaitlistList: waitlistedSessionIds.contains(s.id),
                       onBook: () => _openBookingFlow(s),
-                      onWaitlist: () => _openWaitlist(s),
+                      onWaitlist: () {
+                        if (waitlistedSessionIds.contains(s.id)) {
+                          ToastMessage.show(
+                              context,
+                              context.t('You are already on this waitlist',
+                                  'Vous êtes déjà sur cette liste d\'attente'));
+                          return;
+                        }
+                        _openWaitlist(s);
+                      },
+                      onCancelBooking: confirmedBookingBySessionId[s.id] == null
+                          ? null
+                          : () => _cancelBooking(
+                                confirmedBookingBySessionId[s.id]!.id,
+                              ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
-                Text('UPCOMING BOOKINGS', style: AppTextStyles.sectionLabel),
+                Text(context.t('UPCOMING BOOKINGS', 'RÉSERVATIONS À VENIR'),
+                    style: AppTextStyles.sectionLabel),
                 const SizedBox(height: 8),
                 if (confirmedBookings.isEmpty)
                   Container(
@@ -219,17 +288,17 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
                         color: AppColors.white,
                         borderRadius: BorderRadius.circular(16)),
                     child: Text(
-                      'No confirmed bookings yet',
+                      context.t('No confirmed bookings yet',
+                          'Aucune réservation confirmée pour le moment'),
                       style: AppTextStyles.body,
                     ),
                   )
                 else
                   ...confirmedBookings.map(
                     (booking) {
-                      final idx =
-                          sessions.indexWhere((s) => s.id == booking.sessionId);
                       final sessionTitle =
-                          idx != -1 ? sessions[idx].title : 'Unknown session';
+                          sessionsById[booking.sessionId]?.title ??
+                              context.t('Session', 'Séance');
                       return Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(12),
@@ -243,12 +312,12 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Session $sessionTitle',
+                                    '${context.t('Session', 'Séance')} $sessionTitle',
                                     style: AppTextStyles.body,
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'Booked ${booking.bookedAt.day}/${booking.bookedAt.month}/${booking.bookedAt.year}',
+                                    '${context.t('Booked', 'Réservée')} ${booking.bookedAt.day}/${booking.bookedAt.month}/${booking.bookedAt.year}',
                                     style: AppTextStyles.sessionMeta,
                                   ),
                                 ],

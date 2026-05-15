@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/locale_text.dart';
 
 class FullSessionBanner extends StatelessWidget {
   const FullSessionBanner({super.key});
@@ -17,7 +18,7 @@ class FullSessionBanner extends StatelessWidget {
         children: [
           const Icon(Icons.cancel, color: AppColors.redDark, size: 18),
           const SizedBox(width: 8),
-          Text('Session Full',
+          Text(context.tr('Session Full'),
               style: AppTextStyles.body.copyWith(color: AppColors.redDark)),
         ],
       ),

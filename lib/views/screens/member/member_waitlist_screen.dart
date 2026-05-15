@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/waitlist_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/waitlist_item.dart';
 
@@ -40,14 +41,18 @@ class _MemberWaitlistScreenState extends State<MemberWaitlistScreen> {
                   const Icon(Icons.notifications_none,
                       size: 48, color: AppColors.sageLight),
                   const SizedBox(height: 8),
-                  Text('No waitlists yet', style: AppTextStyles.body),
+                  Text(
+                      context.t('No waitlists yet',
+                          'Aucune liste d\'attente pour le moment'),
+                      style: AppTextStyles.body),
                 ],
               ),
             )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text('ACTIVE WAITLISTS', style: AppTextStyles.sectionLabel),
+                Text(context.t('ACTIVE WAITLISTS', 'LISTES D\'ATTENTE ACTIVES'),
+                    style: AppTextStyles.sectionLabel),
                 const SizedBox(height: 8),
                 ...waitlists.map(
                   (w) => Padding(

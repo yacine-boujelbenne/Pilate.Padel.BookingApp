@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/locale_text.dart';
 
 class StatCard extends StatelessWidget {
   final String value;
@@ -22,7 +23,7 @@ class StatCard extends StatelessWidget {
           Text(value, style: AppTextStyles.statNumber),
           const SizedBox(height: 6),
           Text(
-            label.toUpperCase(),
+            context.tr(label.toUpperCase()),
             style:
                 AppTextStyles.sectionLabel.copyWith(color: AppColors.sageLight),
           ),

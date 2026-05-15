@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
+import '../../../l10n/locale_text.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -52,7 +53,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: AppColors.sageDark,
       body: Center(
-        child: Text('Fléx', style: AppTextStyles.logoTitle),
+        child: Text(context.t('Fléx', 'Fléx'), style: AppTextStyles.logoTitle),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/locale_text.dart';
 import '../../models/session_model.dart';
 import 'buttons.dart';
 import 'detail_row.dart';
@@ -35,23 +36,28 @@ class BookingModal extends StatelessWidget {
           const SizedBox(height: 20),
           Text(session.title, style: AppTextStyles.modalTitle),
           const SizedBox(height: 4),
-          Text('Confirm your reservation',
+          Text(
+              context.t(
+                  'Confirm your reservation', 'Confirmez votre réservation'),
               style: AppTextStyles.sessionMeta.copyWith(fontSize: 13)),
           const SizedBox(height: 16),
           DetailRow(
-              keyLabel: 'Date & time',
+              keyLabel: context.t('Date & time', 'Date et heure'),
               value:
                   '${DateFormat('EEE d MMM').format(session.startAt)} · ${DateFormat('HH:mm').format(session.startAt)}'),
-          DetailRow(keyLabel: 'Coach', value: session.coachName),
-          DetailRow(keyLabel: 'Studio', value: session.studioName),
+          DetailRow(keyLabel: context.tr('Coach'), value: session.coachName),
+          DetailRow(keyLabel: context.tr('Studio'), value: session.studioName),
           DetailRow(
-              keyLabel: 'Price',
+              keyLabel: context.t('Price', 'Prix'),
               value: '${session.priceTnd.toStringAsFixed(0)} TND'),
           const SizedBox(height: 16),
-          FlexPrimaryButton(label: 'Confirm booking', onPressed: onConfirm),
+          FlexPrimaryButton(
+              label: context.t('Confirm booking', 'Confirmer la réservation'),
+              onPressed: onConfirm),
           const SizedBox(height: 8),
           FlexSecondaryButton(
-              label: 'Cancel', onPressed: () => Navigator.of(context).pop()),
+              label: context.tr('Cancel'),
+              onPressed: () => Navigator.of(context).pop()),
         ],
       ),
     );

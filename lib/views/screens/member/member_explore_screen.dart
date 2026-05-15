@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
 import '../../../services/coach_directory_service.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/chip_badge.dart';
 import '../../widgets/coach_card.dart';
 import '../../widgets/flex_app_bar.dart';
@@ -113,9 +114,11 @@ class _MemberExploreScreenState extends State<MemberExploreScreen> {
         children: [
           FlexFormInput(
               controller: _searchController,
-              hint: 'Search sessions or coaches…'),
+              hint: context.t('Search sessions or coaches…',
+                  'Rechercher des séances ou des coachs…')),
           const SizedBox(height: 12),
-          Text('OUR COACHES', style: AppTextStyles.sectionLabel),
+          Text(context.t('OUR COACHES', 'NOS COACHS'),
+              style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
           if (_loading && coaches.isEmpty)
             const Padding(
@@ -131,7 +134,8 @@ class _MemberExploreScreenState extends State<MemberExploreScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                'Could not load coaches right now.',
+                context.t('Could not load coaches right now.',
+                    'Impossible de charger les coachs pour le moment.'),
                 style: AppTextStyles.body,
               ),
             )
@@ -145,8 +149,10 @@ class _MemberExploreScreenState extends State<MemberExploreScreen> {
               ),
               child: Text(
                 _searchQuery.isEmpty
-                    ? 'No coaches available yet.'
-                    : 'No coaches match your search.',
+                    ? context.t('No coaches available yet.',
+                        'Aucun coach disponible pour le moment.')
+                    : context.t('No coaches match your search.',
+                        'Aucun coach ne correspond à votre recherche.'),
                 style: AppTextStyles.body,
               ),
             )
@@ -155,7 +161,7 @@ class _MemberExploreScreenState extends State<MemberExploreScreen> {
               (coach) {
                 final specialty = coach.speciality?.trim().isNotEmpty == true
                     ? coach.speciality!
-                    : 'Coach';
+                    : context.t('Coach', 'Coach');
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),

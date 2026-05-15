@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../controllers/auth_controller.dart';
 import '../views/screens/admin/add_coach_screen.dart';
 import '../views/screens/admin/admin_home_screen.dart';
+import '../views/screens/admin/edit_coach_screen.dart';
 import '../views/screens/admin/admin_sessions_screen.dart';
 import '../views/screens/admin/edit_session_screen.dart';
 import '../views/screens/admin/admin_new_session_screen.dart';
@@ -13,12 +14,14 @@ import '../views/screens/auth/login_screen.dart';
 import '../views/screens/auth/register_screen.dart';
 import '../views/screens/auth/reset_password_screen.dart';
 import '../views/screens/auth/splash_screen.dart';
+import '../views/screens/auth/welcome_screen.dart';
 import '../views/screens/coach/coach_home_screen.dart';
 import '../views/screens/coach/new_session_screen.dart';
 import '../views/screens/common/manage_account_screen.dart';
 import '../views/screens/common/session_attendees_screen.dart';
 import '../views/screens/common/settings_screen.dart';
 import '../views/screens/member/member_bookings_screen.dart';
+import '../views/screens/member/chat_bot_screen.dart';
 import '../views/screens/member/member_coach_detail_screen.dart';
 import '../views/screens/member/member_explore_screen.dart';
 import '../views/screens/member/member_home_screen.dart';
@@ -36,7 +39,9 @@ class AppRouter {
     refreshListenable: authController,
     redirect: _redirect,
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+      GoRoute(path: '/', builder: (context, state) => const WelcomeScreen()),
+      GoRoute(
+          path: '/splash', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
           path: '/register',
@@ -63,6 +68,9 @@ class AppRouter {
       GoRoute(
           path: '/member/explore',
           builder: (context, state) => const MemberExploreScreen()),
+      GoRoute(
+          path: '/member/chatbot',
+          builder: (context, state) => const ChatBotScreen()),
       GoRoute(
           path: '/member/coaches/:id',
           builder: (context, state) => MemberCoachDetailScreen(
@@ -103,6 +111,10 @@ class AppRouter {
       GoRoute(
           path: '/admin/coaches/new',
           builder: (context, state) => const AddCoachScreen()),
+      GoRoute(
+          path: '/admin/coaches/:id/edit',
+          builder: (context, state) =>
+              EditCoachScreen(coachId: state.pathParameters['id']!)),
       GoRoute(
           path: '/admin/sessions/new',
           builder: (context, state) => const AdminNewSessionScreen()),

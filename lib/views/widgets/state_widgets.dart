@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/locale_text.dart';
 import 'buttons.dart';
 
 class FlexLoading extends StatelessWidget {
@@ -38,7 +39,7 @@ class FlexErrorCard extends StatelessWidget {
             Text(message,
                 style: AppTextStyles.body.copyWith(color: AppColors.redDark)),
             const SizedBox(height: 12),
-            FlexSecondaryButton(label: 'Retry', onPressed: onRetry),
+            FlexSecondaryButton(label: context.tr('Retry'), onPressed: onRetry),
           ],
         ),
       ),

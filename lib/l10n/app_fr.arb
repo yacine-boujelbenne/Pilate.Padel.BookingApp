@@ -1,0 +1,22 @@
+{
+  "@@locale": "fr",
+  "appTitle": "Fléx Pilates Studio",
+  "settings": "Paramètres",
+  "notifications": "Notifications",
+  "pushNotifications": "Notifications push",
+  "emailUpdates": "Mises à jour par e-mail",
+  "smsAlerts": "Alertes SMS",
+  "account": "Compte",
+  "manageAccount": "Gérer le compte",
+  "signOut": "Se déconnecter",
+  "language": "Langue",
+  "english": "English",
+  "french": "Français",
+  "bookingCancelled": "Réservation annulée",
+  "couldNotCancelBooking": "Impossible d'annuler la réservation. Veuillez réessayer.",
+  "alreadyOnWaitlist": "Vous êtes déjà sur cette liste d'attente",
+  "addedToWaitlist": "Ajouté à la liste d'attente",
+  "couldNotJoinWaitlist": "Impossible de rejoindre la liste d'attente",
+  "spotAvailable": "Place disponible",
+  "spotOpenedForWaitlist": "Une place s'est ouverte pour votre session en liste d'attente. Réservez maintenant."
+}

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../controllers/session_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/form_fields.dart';
@@ -21,7 +22,6 @@ class _EditSessionScreenState extends State<EditSessionScreen> {
   final _level = TextEditingController();
   final _price = TextEditingController();
 
-
   void _goBack() {
     if (GoRouter.of(context).canPop()) {
       context.pop();
@@ -29,6 +29,7 @@ class _EditSessionScreenState extends State<EditSessionScreen> {
     }
     context.go('/admin/sessions');
   }
+
   @override
   void initState() {
     super.initState();
@@ -63,21 +64,23 @@ class _EditSessionScreenState extends State<EditSessionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const FlexAppBar(
-        title: 'Edit Session',
+      appBar: FlexAppBar(
+        title: context.tr('Edit Session'),
         showBack: true,
         backTarget: '/admin/sessions',
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          FlexFormInput(controller: _title, hint: 'Title'),
+          FlexFormInput(controller: _title, hint: context.tr('Title')),
           const SizedBox(height: 8),
-          FlexFormInput(controller: _level, hint: 'Level'),
+          FlexFormInput(controller: _level, hint: context.tr('Level')),
           const SizedBox(height: 8),
-          FlexFormInput(controller: _price, hint: 'Price TND'),
+          FlexFormInput(
+              controller: _price, hint: context.t('Price TND', 'Prix TND')),
           const SizedBox(height: 12),
-          FlexPrimaryButton(label: 'Save changes', onPressed: _save),
+          FlexPrimaryButton(
+              label: context.tr('Save changes'), onPressed: _save),
         ],
       ),
     );

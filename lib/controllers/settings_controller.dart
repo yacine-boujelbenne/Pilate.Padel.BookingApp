@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/notification_service.dart';
 import '../services/supabase_service.dart';
 
 class SettingsController extends ChangeNotifier {
@@ -65,6 +66,10 @@ class SettingsController extends ChangeNotifier {
       _pushEnabled = pushEnabled ?? _pushEnabled;
       _emailEnabled = emailEnabled ?? _emailEnabled;
       _smsEnabled = smsEnabled ?? _smsEnabled;
+
+      if (pushEnabled != null) {
+        await NotificationService.instance.setPushEnabled(_pushEnabled);
+      }
 
       await _client.from('user_settings').upsert({
         'user_id': uid,

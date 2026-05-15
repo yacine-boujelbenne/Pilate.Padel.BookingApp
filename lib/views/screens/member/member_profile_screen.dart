@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../services/member_profile_summary_service.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/avatar_widget.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/chip_badge.dart';
@@ -78,7 +79,8 @@ class MemberProfileScreen extends StatelessWidget {
           const SizedBox(height: 6),
           Center(
             child: ChipBadge(
-              text: '${_capitalize(profile?.memberTier ?? 'standard')} Member',
+              text:
+                  '${_capitalize(profile?.memberTier ?? 'standard')} ${context.t('Member', 'Membre')}',
               variant: ChipBadgeVariant.green,
             ),
           ),
@@ -104,19 +106,19 @@ class MemberProfileScreen extends StatelessWidget {
                   children: [
                     StatCard(
                       value: '${summary?.sessionsDone ?? 0}',
-                      label: 'Sessions done',
+                      label: context.t('Sessions done', 'Séances effectuées'),
                     ),
                     StatCard(
                       value: '${summary?.sessionsLeft ?? 0}',
-                      label: 'Sessions left',
+                      label: context.t('Sessions left', 'Séances restantes'),
                     ),
                     StatCard(
                       value: (summary?.ratingScore ?? 0).toStringAsFixed(1),
-                      label: 'Avg rating',
+                      label: context.t('Avg rating', 'Note moyenne'),
                     ),
                     StatCard(
                       value: '${summary?.monthsActive ?? 0}',
-                      label: 'Months active',
+                      label: context.t('Months active', 'Mois actif'),
                     ),
                   ],
                 );
@@ -124,20 +126,20 @@ class MemberProfileScreen extends StatelessWidget {
             ),
           const SizedBox(height: 16),
           FlexPrimaryButton(
-            label: 'Manage account',
+            label: context.t('Manage account', 'Gérer le compte'),
             onPressed: () => context.go('/account/manage'),
           ),
           const SizedBox(height: 8),
           FlexSecondaryButton(
-            label: 'Settings',
+            label: context.t('Settings', 'Paramètres'),
             onPressed: () => context.go('/settings', extra: '/member/profile'),
           ),
           const SizedBox(height: 8),
           FlexSecondaryButton(
-            label: 'Sign out',
+            label: context.t('Sign out', 'Se déconnecter'),
             onPressed: () async {
               await auth.signOut();
-              if (context.mounted) context.go('/login');
+              if (context.mounted) context.go('/');
             },
           ),
         ],

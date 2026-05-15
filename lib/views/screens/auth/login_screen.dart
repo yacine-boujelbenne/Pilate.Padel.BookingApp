@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/form_fields.dart';
 import '../../widgets/toast_message.dart';
@@ -18,6 +19,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
+  var _showPassword = true;
 
   @override
   void dispose() {
@@ -42,7 +44,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (_) {
       if (mounted) {
-        ToastMessage.show(context, auth.error ?? 'Login failed');
+        ToastMessage.show(context,
+            auth.error ?? context.t('Login failed', 'Échec de la connexion'));
       }
     }
   }
@@ -58,34 +61,53 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              Text('Sign in', style: AppTextStyles.modalTitle),
+              Text(context.t('Sign in', 'Connexion'),
+                  style: AppTextStyles.modalTitle),
               const SizedBox(height: 16),
-              Text('EMAIL', style: AppTextStyles.formLabel),
-              const SizedBox(height: 6),
-              FlexFormInput(controller: _email, hint: 'you@email.com'),
-              const SizedBox(height: 10),
-              Text('PASSWORD', style: AppTextStyles.formLabel),
+              Text(context.t('EMAIL', 'E-MAIL'),
+                  style: AppTextStyles.formLabel),
               const SizedBox(height: 6),
               FlexFormInput(
-                  controller: _password, hint: '••••••••', obscureText: true),
+                  controller: _email,
+                  hint: context.t('you@email.com', 'vous@exemple.com')),
+              const SizedBox(height: 10),
+              Text(context.t('PASSWORD', 'MOT DE PASSE'),
+                  style: AppTextStyles.formLabel),
+              const SizedBox(height: 6),
+              FlexFormInput(
+                  controller: _password,
+                  hint: '••••••••',
+                  suffixIcon: IconButton(
+                    icon: Icon(_showPassword
+                        ? Icons.visibility_off
+                        : Icons.visibility),
+                    onPressed: () =>
+                        setState(() => _showPassword = !_showPassword),
+                  ),
+                  obscureText: _showPassword),
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () => context.push('/forgot-password'),
-                  child: Text('Forgot password?',
+                  child: Text(
+                      context.t('Forgot password?', 'Mot de passe oublié ?'),
                       style: AppTextStyles.sessionMeta),
                 ),
               ),
               const SizedBox(height: 12),
               FlexPrimaryButton(
-                  label: loading ? 'Signing in...' : 'Sign in',
+                  label: loading
+                      ? context.t('Signing in...', 'Connexion...')
+                      : context.t('Sign in', 'Connexion'),
                   onPressed: loading ? null : _signIn),
               const SizedBox(height: 12),
               Center(
                 child: TextButton(
                   onPressed: () => context.go('/register'),
-                  child: Text('No account? Register',
+                  child: Text(
+                      context.t('No account? Register',
+                          'Pas de compte ? Inscrivez-vous'),
                       style: AppTextStyles.buttonSecondary),
                 ),
               ),

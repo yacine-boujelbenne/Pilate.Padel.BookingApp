@@ -17,11 +17,11 @@ class WaitlistController extends ChangeNotifier {
   String? get error => _error;
 
   void subscribeRealtime() {
-    _channel ??= _client.channel('sessions-live')
+    _channel ??= _client.channel('waitlists-live')
       ..onPostgresChanges(
         event: PostgresChangeEvent.all,
         schema: 'public',
-        table: 'sessions',
+        table: 'waitlists',
         callback: (_) => fetchMemberWaitlists(),
       )
       ..subscribe();
@@ -98,9 +98,38 @@ class WaitlistController extends ChangeNotifier {
     return (res as List).length + 1;
   }
 
-  Future<void> notifyNextInLine(String sessionId) async {
-    await _client.functions
-        .invoke('notify-waitlist', body: {'session_id': sessionId});
+  Future<void> notifyNextInLine(String sessionId,
+      {String? localizedTitle, String? localizedBody}) async {
+    try {
+      await _client.functions
+          .invoke('notify-waitlist', body: {'session_id': sessionId});
+      return;
+    } catch (_) {
+      final res = await _client
+          .from('waitlists')
+          .select('id, member_id')
+          .eq('session_id', sessionId)
+          .order('position')
+          .limit(1);
+
+      final entries = (res as List).cast<Map<String, dynamic>>();
+      if (entries.isEmpty) {
+        return;
+      }
+
+      final nextEntry = entries.first;
+      await _client.from('notifications').insert({
+        'member_id': nextEntry['member_id'],
+        'session_id': sessionId,
+        'title': localizedTitle ?? 'Spot available',
+        'body': localizedBody ??
+            'A spot opened for your waitlisted session. Book now.',
+      });
+
+      await _client.from('waitlists').update({
+        'notified_at': DateTime.now().toIso8601String(),
+      }).eq('id', nextEntry['id']);
+    }
   }
 
   @override

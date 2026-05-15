@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/form_fields.dart';
 import '../../widgets/toast_message.dart';
@@ -38,7 +39,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (_password.text != _confirm.text) {
-      setState(() => _error = 'Passwords do not match');
+      setState(() => _error = context.t(
+          'Passwords do not match', 'Les mots de passe ne correspondent pas'));
       return;
     }
     setState(() => _error = null);
@@ -53,11 +55,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _password.text,
       );
       if (!mounted) return;
-      ToastMessage.show(context, 'Account created. Please verify your email.');
+      ToastMessage.show(
+          context,
+          context.t('Account created. Please verify your email.',
+              'Compte créé. Veuillez vérifier votre e-mail.'));
       context.go('/login');
     } catch (_) {
       if (mounted) {
-        setState(() => _error = auth.error ?? 'Registration failed');
+        setState(() => _error = auth.error ??
+            context.t('Registration failed', 'Échec de l\'inscription'));
       }
     }
   }
@@ -68,34 +74,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       appBar: AppBar(
           backgroundColor: AppColors.white,
-          title: Text('Register', style: AppTextStyles.screenTitle)),
+          title: Text(context.t('Register', 'Inscription'),
+              style: AppTextStyles.screenTitle)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('MEMBER REGISTRATION', style: AppTextStyles.sectionLabel),
+              Text(context.t('MEMBER REGISTRATION', 'INSCRIPTION MEMBRE'),
+                  style: AppTextStyles.sectionLabel),
               const SizedBox(height: 10),
-              FlexFormInput(controller: _first, hint: 'First name'),
-              const SizedBox(height: 8),
-              FlexFormInput(controller: _last, hint: 'Last name'),
-              const SizedBox(height: 8),
-              FlexFormInput(controller: _email, hint: 'Email'),
-              const SizedBox(height: 8),
-              FlexFormInput(controller: _phone, hint: 'Phone'),
+              FlexFormInput(
+                  controller: _first, hint: context.t('First name', 'Prénom')),
               const SizedBox(height: 8),
               FlexFormInput(
-                  controller: _password, hint: 'Password', obscureText: true),
+                  controller: _last, hint: context.t('Last name', 'Nom')),
+              const SizedBox(height: 8),
+              FlexFormInput(
+                  controller: _email, hint: context.t('Email', 'E-mail')),
+              const SizedBox(height: 8),
+              FlexFormInput(
+                  controller: _phone, hint: context.t('Phone', 'Téléphone')),
+              const SizedBox(height: 8),
+              FlexFormInput(
+                  controller: _password,
+                  hint: context.t('Password', 'Mot de passe'),
+                  obscureText: true),
               const SizedBox(height: 8),
               FlexFormInput(
                   controller: _confirm,
-                  hint: 'Confirm password',
+                  hint: context.t(
+                      'Confirm password', 'Confirmer le mot de passe'),
                   obscureText: true,
                   errorText: _error),
               const SizedBox(height: 14),
               FlexPrimaryButton(
-                  label: loading ? 'Creating...' : 'Create account',
+                  label: loading
+                      ? context.t('Creating...', 'Création...')
+                      : context.t('Create account', 'Créer un compte'),
                   onPressed: loading ? null : _register),
             ],
           ),

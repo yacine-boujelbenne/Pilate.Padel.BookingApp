@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/session_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/chip_badge.dart';
 import '../../widgets/flex_app_bar.dart';
 
@@ -28,7 +29,7 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
   @override
   Widget build(BuildContext context) {
     final sessionCtrl = context.watch<SessionController>();
-    final sessions = sessionCtrl.sessions;
+    final sessions = sessionCtrl.allSessions;
     final editRequests = sessionCtrl.editRequests;
     final sessionsById = {for (final s in sessions) s.id: s};
 
@@ -41,8 +42,8 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
     }
 
     return Scaffold(
-      appBar: const FlexAppBar(
-        title: 'All Sessions',
+      appBar: FlexAppBar(
+        title: context.tr('All Sessions'),
         showBack: true,
         backTarget: '/admin/home',
       ),
@@ -54,12 +55,13 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
             child: ElevatedButton.icon(
               onPressed: () => context.go('/admin/sessions/new'),
               icon: const Icon(Icons.add),
-              label: const Text('Add Session'),
+              label: Text(context.tr('Add Session')),
             ),
           ),
           const SizedBox(height: 12),
           if (editRequests.isNotEmpty) ...[
-            Text('EDIT REQUESTS', style: AppTextStyles.sectionLabel),
+            Text(context.tr('EDIT REQUESTS'),
+                style: AppTextStyles.sectionLabel),
             const SizedBox(height: 8),
             ...editRequests.map((r) {
               final sessionId = r['session_id'] as String?;
@@ -67,22 +69,23 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
                   sessionId != null ? sessionsById[sessionId]?.title : null;
               final details = <String>[];
               if (r['proposed_title'] != null) {
-                details.add('Title: ${r['proposed_title']}');
+                details.add('${context.tr('Title')}: ${r['proposed_title']}');
               }
               final startAt = formatDateTime(r['proposed_start_at']);
               final endAt = formatDateTime(r['proposed_end_at']);
               if (startAt.isNotEmpty || endAt.isNotEmpty) {
-                details.add('Time: $startAt → $endAt');
+                details.add('${context.tr('Time')}: $startAt → $endAt');
               }
               if (r['proposed_max_participants'] != null) {
-                details
-                    .add('Max: ${r['proposed_max_participants'].toString()}');
+                details.add(
+                    '${context.tr('Max')}: ${r['proposed_max_participants'].toString()}');
               }
               if (r['proposed_price_tnd'] != null) {
-                details.add('Price: ${r['proposed_price_tnd'].toString()} TND');
+                details.add(
+                    '${context.tr('Price')}: ${r['proposed_price_tnd'].toString()} TND');
               }
               if (r['proposed_level'] != null) {
-                details.add('Level: ${r['proposed_level']}');
+                details.add('${context.tr('Level')}: ${r['proposed_level']}');
               }
 
               return Container(
@@ -94,7 +97,7 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(sessionTitle ?? 'Session edit request',
+                    Text(sessionTitle ?? context.tr('Session edit request'),
                         style: AppTextStyles.sessionTitle),
                     if (details.isNotEmpty) ...[
                       const SizedBox(height: 6),
@@ -109,7 +112,7 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.greenLight,
                               foregroundColor: AppColors.greenDark),
-                          child: const Text('Approve'),
+                          child: Text(context.tr('Approve')),
                         ),
                         const SizedBox(width: 8),
                         ElevatedButton(
@@ -118,7 +121,7 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.redLight,
                               foregroundColor: AppColors.redDark),
-                          child: const Text('Reject'),
+                          child: Text(context.tr('Reject')),
                         ),
                       ],
                     ),
@@ -128,7 +131,7 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
             }),
             const SizedBox(height: 12),
           ],
-          Text('THIS WEEK', style: AppTextStyles.sectionLabel),
+          Text(context.tr('THIS WEEK'), style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
           ...sessions.map((s) {
             final isPending = s.status == 'pending';
@@ -165,7 +168,7 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
                             extra: '/admin/sessions',
                           ),
                           icon: const Icon(Icons.people, size: 16),
-                          label: const Text('Attendees'),
+                          label: Text(context.tr('Attendees')),
                         ),
                     ],
                   ),
@@ -180,14 +183,14 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.greenLight,
                               foregroundColor: AppColors.greenDark),
-                          child: const Text('Approve'),
+                          child: Text(context.tr('Approve')),
                         ),
                         const SizedBox(width: 8),
                       ],
                       OutlinedButton(
                           onPressed: () =>
                               context.push('/admin/sessions/${s.id}/edit'),
-                          child: const Text('Edit')),
+                          child: Text(context.tr('Edit'))),
                       if (!isCancelled) ...[
                         const SizedBox(width: 8),
                         ElevatedButton(
@@ -197,7 +200,7 @@ class _AdminSessionsScreenState extends State<AdminSessionsScreen> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.redLight,
                               foregroundColor: AppColors.redDark),
-                          child: const Text('Cancel'),
+                          child: Text(context.tr('Cancel')),
                         ),
                       ],
                     ],

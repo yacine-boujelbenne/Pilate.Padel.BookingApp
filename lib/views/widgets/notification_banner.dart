@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/locale_text.dart';
 
 class NotificationBanner extends StatelessWidget {
   final String title;
@@ -56,11 +57,11 @@ class NotificationBanner extends StatelessWidget {
             ),
             TextButton(
                 onPressed: onBook,
-                child: const Text('Book',
+                child: Text(context.tr('Book'),
                     style: TextStyle(color: AppColors.white))),
             TextButton(
                 onPressed: onDismiss,
-                child: const Text('Dismiss',
+                child: Text(context.tr('Dismiss'),
                     style: TextStyle(color: AppColors.white))),
           ],
         ),

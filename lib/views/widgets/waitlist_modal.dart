@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/locale_text.dart';
 import 'buttons.dart';
 
 class WaitlistModal extends StatefulWidget {
@@ -61,7 +62,10 @@ class _WaitlistModalState extends State<WaitlistModal> {
           Text(widget.sessionName, style: AppTextStyles.modalTitle),
           const SizedBox(height: 6),
           Text(
-            "This session is full. Join the waitlist and we'll notify you the moment a spot opens.",
+            context.t(
+              "This session is full. Join the waitlist and we'll notify you the moment a spot opens.",
+              "Cette séance est complète. Rejoignez la liste d’attente et nous vous avertirons dès qu’une place se libère.",
+            ),
             style: AppTextStyles.sessionMeta.copyWith(color: AppColors.textMid),
           ),
           const SizedBox(height: 12),
@@ -78,14 +82,16 @@ class _WaitlistModalState extends State<WaitlistModal> {
             ),
           ),
           const SizedBox(height: 12),
-          option('push', 'Push notification', Icons.notifications_active),
+          option('push', context.t('Push notification', 'Notification push'),
+              Icons.notifications_active),
           const SizedBox(height: 8),
           option('sms', 'SMS', Icons.sms),
           const SizedBox(height: 8),
           option('email', 'Email', Icons.email),
           const SizedBox(height: 16),
           FlexPrimaryButton(
-              label: 'Join waitlist & enable alerts',
+              label: context.t('Join waitlist & enable alerts',
+                  'Rejoindre la liste d’attente et activer les alertes'),
               onPressed: () => widget.onJoin(_channel)),
         ],
       ),

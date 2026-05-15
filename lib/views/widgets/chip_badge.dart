@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/locale_text.dart';
 
 enum ChipBadgeVariant { green, sage, amber, red, blue }
 
@@ -27,7 +28,7 @@ class ChipBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        text,
+        context.tr(text),
         style: AppTextStyles.chip.copyWith(color: colors.$2),
       ),
     );

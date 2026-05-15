@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../app/theme.dart';
+import '../../controllers/locale_controller.dart';
+import '../../l10n/locale_text.dart';
 
 class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -13,7 +16,7 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
   const FlexAppBar({
     super.key,
     required this.title,
-    this.showBack = false,
+    this.showBack = true,
     this.backTarget,
     this.badgeText,
     this.extraActions,
@@ -54,7 +57,7 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                badgeText!,
+                context.tr(badgeText!),
                 style: AppTextStyles.chip.copyWith(color: AppColors.sageDark),
               ),
             ),
@@ -62,6 +65,36 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       );
     }
+
+    actionWidgets.add(
+      Consumer<LocaleController>(
+        builder: (context, localeController, _) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              onTap: () {
+                final newLang =
+                    localeController.currentLanguageCode == 'en' ? 'fr' : 'en';
+                localeController.setLocale(newLang);
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.mint,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.sagePale),
+                ),
+                child: Text(
+                  localeController.currentLanguageCode.toUpperCase(),
+                  style: AppTextStyles.chip.copyWith(color: AppColors.sageDark),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
 
     return AppBar(
       backgroundColor: AppColors.white,
@@ -84,7 +117,7 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             )
           : null,
-      title: Text(title, style: AppTextStyles.screenTitle),
+      title: Text(context.tr(title), style: AppTextStyles.screenTitle),
       actions: actionWidgets.isEmpty ? null : actionWidgets,
     );
   }

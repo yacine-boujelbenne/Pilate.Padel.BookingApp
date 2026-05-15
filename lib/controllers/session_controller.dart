@@ -11,11 +11,13 @@ class SessionController extends ChangeNotifier {
   bool _loading = false;
   String? _error;
   List<SessionModel> _sessions = [];
+  List<SessionModel> _allSessions = [];
   List<Map<String, dynamic>> _editRequests = [];
 
   bool get isLoading => _loading;
   String? get error => _error;
   List<SessionModel> get sessions => _sessions;
+  List<SessionModel> get allSessions => _allSessions;
   List<Map<String, dynamic>> get editRequests => _editRequests;
 
   Future<void> fetchSessionsByDate(DateTime date) async {
@@ -53,7 +55,7 @@ class SessionController extends ChangeNotifier {
     _setLoading(true);
     try {
       final res = await _client.from('sessions').select().order('start_at');
-      _sessions = (res as List)
+      _allSessions = (res as List)
           .map((e) => SessionModel.fromMap(e as Map<String, dynamic>))
           .toList();
       _error = null;

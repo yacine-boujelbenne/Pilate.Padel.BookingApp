@@ -3,11 +3,13 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/admin_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../../services/member_profile_summary_service.dart';
 import '../../widgets/avatar_widget.dart';
 import '../../widgets/chip_badge.dart';
 import '../../widgets/detail_row.dart';
 import '../../widgets/flex_app_bar.dart';
+import '../../widgets/toast_message.dart';
 
 class MemberDetailScreen extends StatefulWidget {
   final String userId;
@@ -23,6 +25,61 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
       MemberProfileSummaryService();
   Future<MemberProfileSummary>? _summaryFuture;
   String? _userId;
+
+  Future<void> _openMessageDialog(
+      BuildContext context, Map<String, dynamic> user) async {
+    final controller = TextEditingController();
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(context.tr('Message')),
+          content: TextField(
+            controller: controller,
+            maxLines: 5,
+            decoration: InputDecoration(
+              hintText: context.tr('Write a message'),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(context.tr('Cancel')),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(controller.text),
+              child: Text(context.tr('Send')),
+            ),
+          ],
+        );
+      },
+    );
+
+    controller.dispose();
+
+    if (result == null || result.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      await context.read<AdminController>().sendMessageToUser(
+            recipientId: widget.userId,
+            content: result,
+          );
+      if (!context.mounted) return;
+      ToastMessage.show(
+        context,
+        context.tr('Message sent'),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ToastMessage.show(
+        context,
+        '${context.tr('Could not send message')}: $e',
+      );
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -62,7 +119,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         backTarget: '/admin/home',
       ),
       body: user == null
-          ? const Center(child: Text('User not found'))
+          ? Center(child: Text(context.tr('User not found')))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -88,8 +145,8 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ChipBadge(
-                      text:
-                          '${_capitalize((user['member_tier'] as String?) ?? 'standard')}',
+                      text: _capitalize(
+                          (user['member_tier'] as String?) ?? 'standard'),
                       variant: ChipBadgeVariant.amber,
                     ),
                     const SizedBox(width: 8),
@@ -99,7 +156,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                 ),
                 const SizedBox(height: 12),
                 DetailRow(
-                  keyLabel: 'Member since',
+                  keyLabel: context.tr('Member since'),
                   value: _memberSince(_parseCreatedAt(user['created_at'])),
                 ),
                 FutureBuilder<MemberProfileSummary>(
@@ -117,15 +174,15 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                     return Column(
                       children: [
                         DetailRow(
-                          keyLabel: 'Sessions done',
+                          keyLabel: context.tr('Sessions done'),
                           value: '${summary?.sessionsDone ?? 0}',
                         ),
                         DetailRow(
-                          keyLabel: 'Sessions left',
+                          keyLabel: context.tr('Sessions left'),
                           value: '${summary?.sessionsLeft ?? 0}',
                         ),
                         DetailRow(
-                          keyLabel: 'Payment status',
+                          keyLabel: context.tr('Payment status'),
                           value: summary?.paymentStatusLabel ?? 'Good',
                         ),
                       ],
@@ -137,11 +194,11 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => _openMessageDialog(context, user),
                         style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.sagePale,
                             foregroundColor: AppColors.sageDark),
-                        child: const Text('Message'),
+                        child: Text(context.tr('Message')),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -153,7 +210,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                         style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.redLight,
                             foregroundColor: AppColors.redDark),
-                        child: const Text('Block'),
+                        child: Text(context.tr('Block')),
                       ),
                     ),
                   ],

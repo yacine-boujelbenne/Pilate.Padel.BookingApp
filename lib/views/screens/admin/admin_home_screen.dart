@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../app/theme.dart';
 import '../../../controllers/admin_controller.dart';
 import '../../../controllers/auth_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/chip_badge.dart';
 import '../../widgets/coach_card.dart';
@@ -74,21 +75,22 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
     return Scaffold(
       appBar: FlexAppBar(
-        title: 'Admin Panel',
-        badgeText: 'Admin',
+        title: context.tr('Admin Panel'),
+        badgeText: context.tr('Admin'),
+        showBack: false,
         extraActions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: context.tr('Refresh'),
             icon: const Icon(Icons.refresh, color: AppColors.sageDark),
             onPressed: () =>
                 context.read<AdminController>().refreshDashboardData(),
           ),
           IconButton(
-            tooltip: 'Sign out',
+            tooltip: context.tr('Sign out'),
             icon: const Icon(Icons.logout, color: AppColors.sageDark),
             onPressed: () async {
               await context.read<AuthController>().signOut();
-              if (context.mounted) context.go('/login');
+              if (context.mounted) context.go('/');
             },
           ),
         ],
@@ -108,14 +110,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Dashboard diagnostic',
+                    context.tr('Dashboard diagnostic'),
                     style: AppTextStyles.sectionLabel.copyWith(
                       color: AppColors.redDark,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Current role: ${auth.profile?.role ?? 'unknown'}',
+                    '${context.tr('Current role:')} ${auth.profile?.role ?? 'unknown'}',
                     style: AppTextStyles.body,
                   ),
                   if (admin.error != null) ...[
@@ -134,24 +136,25 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             children: [
               StatCard(
                 value: admin.stats['activeMembers']?.toString() ?? '0',
-                label: 'Active members',
+                label: context.tr('ACTIVE MEMBERS'),
               ),
               StatCard(
                 value: admin.stats['sessionsWeek']?.toString() ?? '0',
-                label: 'Sessions / week',
+                label: context.tr('THIS WEEK'),
               ),
               StatCard(
                 value: admin.stats['revenueTnd']?.toStringAsFixed(0) ?? '0',
-                label: 'Revenue (TND)',
+                label: context.t('Revenue (TND)', 'Revenu (TND)'),
               ),
               StatCard(
                 value: admin.stats['activeCoaches']?.toString() ?? '0',
-                label: 'Active coaches',
+                label: context.tr('COACHES'),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text('PENDING VALIDATIONS', style: AppTextStyles.sectionLabel),
+          Text(context.tr('PENDING VALIDATIONS'),
+              style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
           if (admin.pendingValidations.isEmpty)
             Container(
@@ -160,7 +163,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(16)),
               child: Text(
-                'No pending payment validations',
+                context.tr('No pending payment validations'),
                 style: AppTextStyles.body,
               ),
             )
@@ -186,12 +189,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      memberName.isEmpty ? 'Unknown member' : memberName,
-                      style: AppTextStyles.sessionTitle,
-                    ),
+                        memberName.isEmpty
+                            ? context.tr('Unknown member')
+                            : memberName,
+                        style: AppTextStyles.sessionTitle),
                     const SizedBox(height: 4),
                     Text(
-                      '$sessionTitle · Pending payment · $amount TND',
+                      '$sessionTitle · ${context.tr('Pending')} payment · $amount TND',
                       style: AppTextStyles.sessionMeta,
                     ),
                     const SizedBox(height: 8),
@@ -204,7 +208,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.greenLight,
                               foregroundColor: AppColors.greenDark),
-                          child: const Text('Validate'),
+                          child: Text(context.tr('Validate')),
                         ),
                         const SizedBox(width: 6),
                         ElevatedButton(
@@ -214,7 +218,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.redLight,
                               foregroundColor: AppColors.redDark),
-                          child: const Text('Reject'),
+                          child: Text(context.tr('Reject')),
                         ),
                       ],
                     ),
@@ -223,10 +227,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               );
             }),
           const SizedBox(height: 12),
-          Text('ACTIVE MEMBERS', style: AppTextStyles.sectionLabel),
+          Text(context.tr('ACTIVE MEMBERS'), style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
           FlexFormInput(
-              controller: _searchController, hint: 'Search member...'),
+              controller: _searchController,
+              hint: context.tr('Search member...')),
           const SizedBox(height: 8),
           if (activeMembers.isEmpty)
             Container(
@@ -237,8 +242,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               ),
               child: Text(
                 _searchQuery.isEmpty
-                    ? 'No active members available'
-                    : 'No members match your search',
+                    ? context.tr('No active members available')
+                    : context.tr('No members match your search'),
                 style: AppTextStyles.body,
               ),
             )
@@ -265,13 +270,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     TextButton(
                         onPressed: () =>
                             context.push('/admin/users/${u['id']}'),
-                        child: const Text('View')),
+                        child: Text(context.tr('View'))),
                   ],
                 ),
               ),
             ),
           const SizedBox(height: 12),
-          Text('COACHES', style: AppTextStyles.sectionLabel),
+          Text(context.tr('COACHES'), style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
           if (admin.coaches.isEmpty)
             Container(
@@ -280,7 +285,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Text('No coaches available', style: AppTextStyles.body),
+              child: Text(context.tr('No coaches available'),
+                  style: AppTextStyles.body),
             )
           else
             ...admin.coaches.map(
@@ -289,16 +295,19 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 child: CoachCard(
                     name: '${c['first_name'] ?? ''} ${c['last_name'] ?? ''}',
                     speciality: '${c['speciality'] ?? 'Coach'}',
-                    onEdit: () {}),
+                    onEdit: () =>
+                        context.push('/admin/coaches/${c['id']}/edit'),
+                    onTap: () =>
+                        context.push('/admin/coaches/${c['id']}/edit')),
               ),
             ),
           const SizedBox(height: 8),
           FlexPrimaryButton(
-              label: '+ Add coach account',
+              label: context.tr('Add coach account'),
               onPressed: () => context.push('/admin/coaches/new')),
           const SizedBox(height: 8),
           FlexSecondaryButton(
-              label: 'Manage all sessions',
+              label: context.tr('Manage all sessions'),
               onPressed: () => context.push('/admin/sessions')),
         ],
       ),

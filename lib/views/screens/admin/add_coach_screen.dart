@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../controllers/auth_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/form_fields.dart';
@@ -37,7 +38,7 @@ class _AddCoachScreenState extends State<AddCoachScreen> {
         _email.text.trim().isEmpty ||
         _spec.text.trim().isEmpty ||
         _phone.text.trim().isEmpty) {
-      ToastMessage.show(context, 'Please fill in all fields');
+      ToastMessage.show(context, context.tr('Please fill in all fields'));
       return;
     }
 
@@ -55,12 +56,12 @@ class _AddCoachScreenState extends State<AddCoachScreen> {
         await showDialog<void>(
           context: context,
           builder: (dialogContext) => AlertDialog(
-            title: const Text('Coach account created'),
+            title: Text(context.tr('Coach account created')),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Temporary password (shown once):'),
+                Text(context.tr('Temporary password (shown once):')),
                 const SizedBox(height: 8),
                 SelectableText(tempPassword),
               ],
@@ -68,19 +69,19 @@ class _AddCoachScreenState extends State<AddCoachScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text('Close'),
+                child: Text(context.tr('Close')),
               ),
             ],
           ),
         );
         if (!mounted) return;
       }
-      ToastMessage.show(context, 'Coach account created!');
+      ToastMessage.show(context, context.tr('Coach account created!'));
       Navigator.of(context).pop();
     } catch (_) {
       if (mounted) {
-        ToastMessage.show(
-            context, auth.error ?? 'Failed to create coach account');
+        ToastMessage.show(context,
+            auth.error ?? context.tr('Failed to create coach account'));
       }
     }
   }
@@ -89,8 +90,8 @@ class _AddCoachScreenState extends State<AddCoachScreen> {
   Widget build(BuildContext context) {
     final loading = context.watch<AuthController>().isLoading;
     return Scaffold(
-      appBar: const FlexAppBar(
-        title: 'Add Coach',
+      appBar: FlexAppBar(
+        title: context.tr('Add Coach'),
         showBack: true,
         backTarget: '/admin/home',
       ),
@@ -108,7 +109,9 @@ class _AddCoachScreenState extends State<AddCoachScreen> {
           FlexFormInput(controller: _phone, hint: 'Phone'),
           const SizedBox(height: 12),
           FlexPrimaryButton(
-            label: loading ? 'Creating...' : 'Create account',
+            label: loading
+                ? context.tr('Creating...')
+                : context.tr('Create Account'),
             onPressed: loading ? null : _create,
           ),
         ],

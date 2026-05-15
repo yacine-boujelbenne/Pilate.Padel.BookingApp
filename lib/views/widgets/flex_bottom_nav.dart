@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/locale_text.dart';
 
 class FlexBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -31,7 +32,14 @@ class FlexBottomNav extends StatelessWidget {
         selectedLabelStyle:
             AppTextStyles.navLabel.copyWith(fontWeight: FontWeight.w600),
         unselectedLabelStyle: AppTextStyles.navLabel,
-        items: items,
+        items: items
+            .map(
+              (item) => BottomNavigationBarItem(
+                icon: item.icon,
+                label: context.tr(item.label ?? ''),
+              ),
+            )
+            .toList(),
       ),
     );
   }

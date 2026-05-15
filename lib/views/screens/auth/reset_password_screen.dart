@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/form_fields.dart';
 import '../../widgets/toast_message.dart';
@@ -31,17 +32,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     setState(() => _error = null);
 
     if (_password.text.isEmpty) {
-      setState(() => _error = 'Password is required');
+      setState(() => _error =
+          context.t('Password is required', 'Le mot de passe est requis'));
       return;
     }
 
     if (_password.text != _confirm.text) {
-      setState(() => _error = 'Passwords do not match');
+      setState(() => _error = context.t(
+          'Passwords do not match', 'Les mots de passe ne correspondent pas'));
       return;
     }
 
     if (_password.text.length < 6) {
-      setState(() => _error = 'Password must be at least 6 characters');
+      setState(() => _error = context.t(
+          'Password must be at least 6 characters',
+          'Le mot de passe doit contenir au moins 6 caractères'));
       return;
     }
 
@@ -49,11 +54,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     try {
       await auth.updatePassword(newPassword: _password.text);
       if (!mounted) return;
-      ToastMessage.show(context, 'Password updated successfully.');
+      ToastMessage.show(
+          context,
+          context.t('Password updated successfully.',
+              'Mot de passe mis à jour avec succès.'));
       context.go('/login');
     } catch (_) {
       if (mounted) {
-        setState(() => _error = auth.error ?? 'Failed to reset password');
+        setState(() => _error = auth.error ??
+            context.t('Failed to reset password',
+                'Échec de la réinitialisation du mot de passe'));
       }
     }
   }
@@ -64,7 +74,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.white,
-        title: Text('New password', style: AppTextStyles.screenTitle),
+        title: Text(context.t('New password', 'Nouveau mot de passe'),
+            style: AppTextStyles.screenTitle),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -72,14 +83,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('RESET PASSWORD', style: AppTextStyles.sectionLabel),
+              Text(context.t('RESET PASSWORD', 'RÉINITIALISER LE MOT DE PASSE'),
+                  style: AppTextStyles.sectionLabel),
               const SizedBox(height: 10),
               Text(
-                'Enter your new password below.',
+                context.t('Enter your new password below.',
+                    'Entrez votre nouveau mot de passe ci-dessous.'),
                 style: AppTextStyles.body,
               ),
               const SizedBox(height: 20),
-              Text('NEW PASSWORD', style: AppTextStyles.formLabel),
+              Text(context.t('NEW PASSWORD', 'NOUVEAU MOT DE PASSE'),
+                  style: AppTextStyles.formLabel),
               const SizedBox(height: 6),
               FlexFormInput(
                 controller: _password,
@@ -87,7 +101,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 obscureText: true,
               ),
               const SizedBox(height: 10),
-              Text('CONFIRM PASSWORD', style: AppTextStyles.formLabel),
+              Text(context.t('CONFIRM PASSWORD', 'CONFIRMER LE MOT DE PASSE'),
+                  style: AppTextStyles.formLabel),
               const SizedBox(height: 6),
               FlexFormInput(
                 controller: _confirm,
@@ -97,14 +112,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               ),
               const SizedBox(height: 20),
               FlexPrimaryButton(
-                label: loading ? 'Updating...' : 'Update password',
+                label: loading
+                    ? context.t('Updating...', 'Mise à jour...')
+                    : context.t(
+                        'Update password', 'Mettre à jour le mot de passe'),
                 onPressed: loading ? null : _resetPassword,
               ),
               const SizedBox(height: 12),
               Center(
                 child: TextButton(
                   onPressed: () => context.go('/login'),
-                  child: Text('Cancel', style: AppTextStyles.buttonSecondary),
+                  child: Text(context.t('Cancel', 'Annuler'),
+                      style: AppTextStyles.buttonSecondary),
                 ),
               ),
             ],

@@ -10,6 +10,7 @@ class FlexFormInput extends StatelessWidget {
   final String? errorText;
   final VoidCallback? onTap;
   final bool readOnly;
+  final Widget? suffixIcon;
 
   const FlexFormInput({
     super.key,
@@ -20,6 +21,7 @@ class FlexFormInput extends StatelessWidget {
     this.errorText,
     this.onTap,
     this.readOnly = false,
+    this.suffixIcon,
   });
 
   @override
@@ -34,6 +36,7 @@ class FlexFormInput extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         errorText: errorText,
+        suffixIcon: suffixIcon,
         hintStyle: AppTextStyles.formInput.copyWith(color: AppColors.textLight),
         contentPadding:
             const EdgeInsets.symmetric(vertical: 11, horizontal: 14),

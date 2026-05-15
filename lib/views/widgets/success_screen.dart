@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/locale_text.dart';
 import 'buttons.dart';
 
 class SuccessScreen extends StatelessWidget {
@@ -35,14 +36,18 @@ class SuccessScreen extends StatelessWidget {
               const Icon(Icons.check_circle,
                   size: 72, color: AppColors.greenDark),
               const SizedBox(height: 12),
-              Text('Booking confirmed!',
+              Text(context.tr('Booking confirmed!'),
                   style: AppTextStyles.logoTitle
                       .copyWith(fontSize: 26, color: AppColors.sageDark)),
               const SizedBox(height: 6),
               Text(
                 isCash
-                    ? 'Your spot is reserved. Please bring ${amount.toStringAsFixed(0)} TND to the studio.'
-                    : 'Payment of ${amount.toStringAsFixed(0)} TND confirmed. See you on the mat!',
+                    ? context.t(
+                        'Your spot is reserved. Please bring ${amount.toStringAsFixed(0)} TND to the studio.',
+                        'Votre place est réservée. Merci d’apporter ${amount.toStringAsFixed(0)} TND au studio.')
+                    : context.t(
+                        'Payment of ${amount.toStringAsFixed(0)} TND confirmed. See you on the mat!',
+                        'Paiement de ${amount.toStringAsFixed(0)} TND confirmé. À bientôt sur le tapis !'),
                 style: AppTextStyles.body,
                 textAlign: TextAlign.center,
               ),
@@ -63,15 +68,18 @@ class SuccessScreen extends StatelessWidget {
                     Text(date, style: AppTextStyles.sessionMeta),
                     Text(coachStudio, style: AppTextStyles.sessionMeta),
                     const SizedBox(height: 6),
-                    Text('Payment: $method', style: AppTextStyles.body),
-                    Text('Total paid: ${amount.toStringAsFixed(0)} TND',
+                    Text('${context.tr('Payment:')} $method',
+                        style: AppTextStyles.body),
+                    Text(
+                        '${context.tr('Total paid:')} ${amount.toStringAsFixed(0)} TND',
                         style: AppTextStyles.body
                             .copyWith(fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
               const Spacer(),
-              FlexSecondaryButton(label: 'Back to home', onPressed: onBackHome),
+              FlexSecondaryButton(
+                  label: context.tr('Back to home'), onPressed: onBackHome),
             ],
           ),
         ),

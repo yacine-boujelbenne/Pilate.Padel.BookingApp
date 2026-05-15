@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../../l10n/locale_text.dart';
 import '../../models/waitlist_entry.dart';
 
 class WaitlistItem extends StatelessWidget {
@@ -36,10 +37,12 @@ class WaitlistItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Session ${entry.sessionId.substring(0, 6)}',
+                Text(
+                    '${context.tr('Session')} ${entry.sessionId.substring(0, 6)}',
                     style: AppTextStyles.body
                         .copyWith(fontWeight: FontWeight.w600)),
-                Text('Notify via ${entry.notifyChannel.toUpperCase()}',
+                Text(
+                    '${context.tr('Notify via')} ${entry.notifyChannel.toUpperCase()}',
                     style: AppTextStyles.sessionMeta),
               ],
             ),
@@ -52,7 +55,7 @@ class WaitlistItem extends StatelessWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Leave'),
+            child: Text(context.tr('Leave')),
           ),
         ],
       ),
