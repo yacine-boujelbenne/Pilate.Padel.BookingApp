@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/supabase_service.dart';
 
@@ -162,7 +163,9 @@ class FollowController extends ChangeNotifier {
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
-      _coachFollowers[coachId] = List<Map<String, dynamic>>.from(response as List);
+      _coachFollowers[coachId] = List<Map<String, dynamic>>.from(
+        response as List,
+      );
 
       _error = null;
       return _coachFollowers[coachId] ?? [];
@@ -180,8 +183,9 @@ class FollowController extends ChangeNotifier {
     try {
       final response = await _client
           .from('coach_follows')
-          .select('id', const QueryOptions(count: CountOption.exact))
-          .eq('coach_id', coachId);
+          .select()
+          .eq('coach_id', coachId)
+          .count(CountOption.exact);
 
       final count = response.count ?? 0;
       _coachFollowerCounts[coachId] = count;
@@ -236,7 +240,9 @@ class FollowController extends ChangeNotifier {
             'coach_id, profiles!coach_id(id, first_name, last_name, avatar_url, speciality)',
           )
           .eq('member_id', _currentUserId!)
-          .or('profiles.first_name.ilike.$searchTerm,profiles.last_name.ilike.$searchTerm,profiles.speciality.ilike.$searchTerm');
+          .or(
+            'profiles.first_name.ilike.$searchTerm,profiles.last_name.ilike.$searchTerm,profiles.speciality.ilike.$searchTerm',
+          );
 
       return List<Map<String, dynamic>>.from(response as List);
     } catch (e) {

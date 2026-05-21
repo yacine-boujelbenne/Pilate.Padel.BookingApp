@@ -16,7 +16,7 @@ class GlassCard extends StatelessWidget {
   final bool showBorder;
   final LinearGradient? borderGradient;
 
-  const GlossCard({
+  const GlassCard({
     super.key,
     required this.child,
     this.width,

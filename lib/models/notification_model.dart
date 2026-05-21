@@ -9,11 +9,7 @@ enum NotificationEvent {
 }
 
 /// Enum for different notification channels
-enum NotificationChannel {
-  EMAIL,
-  IN_APP,
-  PUSH,
-}
+enum NotificationChannel { EMAIL, IN_APP, PUSH }
 
 /// Data model for notifications
 class NotificationData {
@@ -157,6 +153,15 @@ class NotificationPreferences {
     required this.updatedAt,
   });
 
+  /// Check if email notifications are enabled
+  bool get emailEnabled => enabledChannels.contains(NotificationChannel.EMAIL);
+  
+  /// Check if in-app notifications are enabled
+  bool get inAppEnabled => enabledChannels.contains(NotificationChannel.IN_APP);
+  
+  /// Check if push notifications are enabled
+  bool get pushEnabled => enabledChannels.contains(NotificationChannel.PUSH);
+
   /// Create a copy with modified fields
   NotificationPreferences copyWith({
     String? memberId,
@@ -176,8 +181,12 @@ class NotificationPreferences {
   Map<String, dynamic> toMap() {
     return {
       'member_id': memberId,
-      'enabled_channels': enabledChannels.map((c) => c.toString().split('.').last).toList(),
-      'enabled_event_types': enabledEventTypes.map((e) => e.toString().split('.').last).toList(),
+      'enabled_channels': enabledChannels
+          .map((c) => c.toString().split('.').last)
+          .toList(),
+      'enabled_event_types': enabledEventTypes
+          .map((e) => e.toString().split('.').last)
+          .toList(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
     };
   }
@@ -187,7 +196,7 @@ class NotificationPreferences {
     final channels = (map['enabled_channels'] as List<dynamic>? ?? [])
         .map((c) => _parseChannel(c as String))
         .toList();
-    
+
     final events = (map['enabled_event_types'] as List<dynamic>? ?? [])
         .map((e) => _parseEventType(e as String))
         .toList();
@@ -224,6 +233,24 @@ class NotificationPreferences {
         return NotificationChannel.IN_APP;
       default:
         return NotificationChannel.IN_APP;
+    }
+  }
+
+  static NotificationEvent _parseEventType(String? value) {
+    if (value == null) return NotificationEvent.CUSTOM;
+    switch (value.toUpperCase()) {
+      case 'COACH_SESSION_CREATED':
+        return NotificationEvent.COACH_SESSION_CREATED;
+      case 'SESSION_SPOT_AVAILABLE':
+        return NotificationEvent.SESSION_SPOT_AVAILABLE;
+      case 'WAITLIST_AVAILABLE':
+        return NotificationEvent.WAITLIST_AVAILABLE;
+      case 'SESSION_CANCELLED':
+        return NotificationEvent.SESSION_CANCELLED;
+      case 'BOOKING_CONFIRMED':
+        return NotificationEvent.BOOKING_CONFIRMED;
+      default:
+        return NotificationEvent.CUSTOM;
     }
   }
 

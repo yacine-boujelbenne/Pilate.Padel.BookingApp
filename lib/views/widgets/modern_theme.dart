@@ -266,10 +266,7 @@ class ModernTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(ModernRadius.md),
-          borderSide: const BorderSide(
-            color: ModernColors.primary,
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: ModernColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(ModernRadius.md),
@@ -277,10 +274,7 @@ class ModernTheme {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(ModernRadius.md),
-          borderSide: const BorderSide(
-            color: ModernColors.error,
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: ModernColors.error, width: 2),
         ),
         labelStyle: ModernTypography.labelMedium,
         hintStyle: ModernTypography.bodyMedium.copyWith(
@@ -332,15 +326,12 @@ class ModernTheme {
           textStyle: ModernTypography.labelLarge,
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: ModernColors.surfaceGlass,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(ModernRadius.lg),
-          side: const BorderSide(
-            color: ModernColors.dividerLight,
-            width: 1,
-          ),
+          side: const BorderSide(color: ModernColors.dividerLight, width: 1),
         ),
         shadowColor: const Color(0x1A000000),
         margin: EdgeInsets.zero,

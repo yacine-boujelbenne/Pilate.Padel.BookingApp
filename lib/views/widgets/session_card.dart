@@ -33,7 +33,7 @@ class SessionCard extends StatelessWidget {
     final start = DateFormat('HH:mm').format(session.startAt);
     final end = DateFormat('HH:mm').format(session.endAt);
 
-    return GlossCard(
+    return GlassCard(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       child: Column(
