@@ -40,7 +40,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(ModernSpacing.lg),
+              padding: EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: ModernColors.primaryGradient,
               ),
@@ -66,7 +66,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: ModernSpacing.md),
+                  SizedBox(height: 16),
                   Consumer<NotificationController>(
                     builder: (context, notifController, child) {
                       return Text(
@@ -83,7 +83,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
             // Filter and action buttons
             Padding(
-              padding: const EdgeInsets.all(ModernSpacing.lg),
+              padding: EdgeInsets.all(24),
               child: Column(
                 children: [
                   Row(
@@ -102,7 +102,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                               color: _showUnreadOnly
                                   ? Colors.blue.withOpacity(0.1)
                                   : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(ModernRadius.md),
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: _showUnreadOnly
                                     ? Colors.blue
@@ -120,7 +120,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                       : Colors.grey[700],
                                   size: 20,
                                 ),
-                                const SizedBox(width: ModernSpacing.sm),
+                                SizedBox(width: 12),
                                 Text(
                                   _showUnreadOnly ? 'Unread Only' : 'All',
                                   style: ModernTypography.labelMedium.copyWith(
@@ -135,7 +135,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: ModernSpacing.md),
+                      SizedBox(width: 16),
                       Consumer<NotificationController>(
                         builder: (context, notifController, child) {
                           return GestureDetector(
@@ -154,7 +154,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: Colors.green.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(ModernRadius.md),
+                                borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: Colors.green.withOpacity(0.3),
                                   width: 1,
@@ -167,7 +167,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                                     color: Colors.green.shade600,
                                     size: 20,
                                   ),
-                                  const SizedBox(width: ModernSpacing.sm),
+                                  SizedBox(width: 12),
                                   Text(
                                     'Mark All',
                                     style: ModernTypography.labelMedium.copyWith(
@@ -216,14 +216,14 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                             size: 64,
                             color: Colors.grey.withOpacity(0.3),
                           ),
-                          const SizedBox(height: ModernSpacing.lg),
+                          SizedBox(height: 24),
                           Text(
                             'No notifications',
                             style: ModernTypography.headlineSmall.copyWith(
                               color: Colors.grey[600],
                             ),
                           ),
-                          const SizedBox(height: ModernSpacing.md),
+                          SizedBox(height: 16),
                           Text(
                             _showUnreadOnly
                                 ? 'All your notifications are read'
@@ -243,7 +243,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   return RefreshIndicator(
                     onRefresh: () => notifController.refreshNotifications(),
                     child: ListView.builder(
-                      padding: const EdgeInsets.all(ModernSpacing.lg),
+                      padding: EdgeInsets.all(24),
                       itemCount: groupedNotifications.length,
                       itemBuilder: (context, index) {
                         final entry = groupedNotifications.entries.toList()[index];
@@ -317,7 +317,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: ModernSpacing.md),
+          padding: EdgeInsets.symmetric(vertical: 16),
           child: Text(
             dateKey,
             style: ModernTypography.labelMedium.copyWith(
@@ -341,8 +341,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     final color = _getNotificationColor(notification.eventType);
 
     return GlassCard(
-      margin: const EdgeInsets.only(bottom: ModernSpacing.md),
-      padding: const EdgeInsets.all(ModernSpacing.md),
+      margin: EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.all(16),
       onTap: () {
         if (!notification.isRead) {
           controller.markAsRead(notification.id);
@@ -357,7 +357,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
             height: 48,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(ModernRadius.lg),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
               icon,
@@ -366,7 +366,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
             ),
           ),
 
-          const SizedBox(width: ModernSpacing.md),
+          SizedBox(width: 16),
 
           // Content
           Expanded(
@@ -402,7 +402,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       ),
                   ],
                 ),
-                const SizedBox(height: ModernSpacing.xs),
+                SizedBox(height: 8),
                 Text(
                   notification.body,
                   style: ModernTypography.labelMedium.copyWith(
@@ -415,7 +415,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
             ),
           ),
 
-          const SizedBox(width: ModernSpacing.md),
+          SizedBox(width: 16),
 
           // Actions
           GestureDetector(

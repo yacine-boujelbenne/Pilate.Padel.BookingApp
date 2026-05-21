@@ -16,12 +16,12 @@ class GlassCard extends StatelessWidget {
   final bool showBorder;
   final LinearGradient? borderGradient;
 
-  const GlassCard({
+  const GlossCard({
     super.key,
     required this.child,
     this.width,
     this.height,
-    this.padding = const EdgeInsets.all(ModernSpacing.lg),
+    this.padding = const EdgeInsets.all(16),
     this.margin = EdgeInsets.zero,
     this.onTap,
     this.blurAmount = 10,
@@ -41,10 +41,7 @@ class GlassCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: ModernColors.glassLight.withOpacity(0.5),
             border: showBorder
-                ? Border.all(
-                    color: ModernColors.glassLighter,
-                    width: 1.5,
-                  )
+                ? Border.all(color: ModernColors.glassLighter, width: 1.5)
                 : null,
             borderRadius: BorderRadius.circular(ModernRadius.lg),
             boxShadow: ModernShadows.mediumElevation,
@@ -56,16 +53,10 @@ class GlassCard extends StatelessWidget {
     );
 
     if (onTap != null) {
-      content = GestureDetector(
-        onTap: onTap,
-        child: content,
-      );
+      content = GestureDetector(onTap: onTap, child: content);
     }
 
-    return Container(
-      margin: margin,
-      child: content,
-    );
+    return Container(margin: margin, child: content);
   }
 }
 
@@ -88,7 +79,7 @@ class ModernButton extends StatefulWidget {
     this.onPressed,
     this.gradient,
     this.width,
-    this.height = ModernSpacing.xl,
+    this.height = 56,
     this.textStyle,
     this.icon,
     this.isLoading = false,
@@ -176,15 +167,13 @@ class _ModernButtonState extends State<ModernButton>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if (widget.icon != null) ...[
-                              Icon(
-                                widget.icon,
-                                color: Colors.white,
-                              ),
+                              Icon(widget.icon, color: Colors.white),
                               const SizedBox(width: ModernSpacing.sm),
                             ],
                             Text(
                               widget.label,
-                              style: widget.textStyle ??
+                              style:
+                                  widget.textStyle ??
                                   ModernTypography.labelLarge.copyWith(
                                     color: Colors.white,
                                   ),
@@ -274,10 +263,7 @@ class _ModernTextFieldState extends State<ModernTextField> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.label.isNotEmpty) ...[
-            Text(
-              widget.label,
-              style: ModernTypography.labelMedium,
-            ),
+            Text(widget.label, style: ModernTypography.labelMedium),
             const SizedBox(height: ModernSpacing.sm),
           ],
           TextField(
@@ -389,10 +375,9 @@ class _NotificationBadgeState extends State<NotificationBadge>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    _pulseAnimation =
-        Tween<double>(begin: 1.0, end: 1.2).animate(
-          CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-        );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
 
     if (widget.count > 0) {
       _pulseController.repeat(reverse: true);
@@ -498,12 +483,13 @@ class _AnimatedNotificationIconState extends State<AnimatedNotificationIcon>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    _colorAnimation = ColorTween(
-      begin: widget.activeColor,
-      end: widget.activeColor.withOpacity(0.5),
-    ).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
+    _colorAnimation =
+        ColorTween(
+          begin: widget.activeColor,
+          end: widget.activeColor.withOpacity(0.5),
+        ).animate(
+          CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+        );
 
     if (widget.hasNotifications) {
       _pulseController.repeat(reverse: true);
@@ -572,16 +558,10 @@ Widget buildGlassModal({
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: ModernTypography.headlineSmall,
-                ),
+                Text(title, style: ModernTypography.headlineSmall),
                 GestureDetector(
                   onTap: onClose ?? () => Navigator.pop(context),
-                  child: Icon(
-                    Icons.close,
-                    color: ModernColors.textSecondary,
-                  ),
+                  child: Icon(Icons.close, color: ModernColors.textSecondary),
                 ),
               ],
             ),

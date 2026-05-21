@@ -96,7 +96,7 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
           children: [
             // App Bar
             Container(
-              padding: const EdgeInsets.all(ModernSpacing.lg),
+              padding: EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: ModernColors.primaryGradient,
               ),
@@ -122,7 +122,7 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: ModernSpacing.md),
+                  SizedBox(height: 16),
                   Text(
                     'Coaches you follow',
                     style: ModernTypography.bodyMedium.copyWith(
@@ -135,7 +135,7 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
 
             // Search and Filter
             Padding(
-              padding: const EdgeInsets.all(ModernSpacing.lg),
+              padding: EdgeInsets.all(24),
               child: Column(
                 children: [
                   // Search field
@@ -146,7 +146,7 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
                     prefixIcon: Icons.search,
                     onChanged: _onSearchChanged,
                   ),
-                  const SizedBox(height: ModernSpacing.md),
+                  SizedBox(height: 16),
 
                   // Specialty filter
                   SizedBox(
@@ -223,14 +223,14 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
                                 size: 64,
                                 color: Colors.grey.withOpacity(0.3),
                               ),
-                              const SizedBox(height: ModernSpacing.lg),
+                              SizedBox(height: 24),
                               Text(
                                 'No coaches found',
                                 style: ModernTypography.headlineSmall.copyWith(
                                   color: Colors.grey[600],
                                 ),
                               ),
-                              const SizedBox(height: ModernSpacing.md),
+                              SizedBox(height: 16),
                               Text(
                                 _searchController.text.isEmpty
                                     ? 'Start following coaches to see them here'
@@ -243,7 +243,7 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
                           ),
                         )
                       : ListView.builder(
-                          padding: const EdgeInsets.all(ModernSpacing.lg),
+                          padding: EdgeInsets.all(24),
                           itemCount: _filteredCoaches.length,
                           itemBuilder: (context, index) {
                             return _buildCoachCard(_filteredCoaches[index]);
@@ -273,8 +273,8 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
         Navigator.pushNamed(context, '/coach/$coachId');
       },
       child: GlassCard(
-        margin: const EdgeInsets.only(bottom: ModernSpacing.lg),
-        padding: const EdgeInsets.all(ModernSpacing.md),
+        margin: EdgeInsets.only(bottom: 24),
+        padding: EdgeInsets.all(16),
         child: Row(
           children: [
             // Avatar
@@ -293,7 +293,7 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
             else
               AvatarWidget(initials: initials, size: 56),
 
-            const SizedBox(width: ModernSpacing.md),
+            SizedBox(width: 16),
 
             // Coach info
             Expanded(
@@ -308,7 +308,7 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: ModernSpacing.xs),
+                  SizedBox(height: 8),
                   Text(
                     specialty,
                     style: ModernTypography.labelMedium.copyWith(
@@ -349,7 +349,7 @@ class _MyCoachesScreenState extends State<MyCoachesScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(ModernRadius.lg),
+          borderRadius: BorderRadius.circular(16),
         ),
         title: const Text('Unfollow Coach?'),
         content: Text(

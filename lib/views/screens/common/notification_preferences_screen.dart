@@ -88,7 +88,7 @@ class _NotificationPreferencesScreenState
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(ModernSpacing.lg),
+              padding: EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: ModernColors.primaryGradient,
               ),
@@ -116,7 +116,7 @@ class _NotificationPreferencesScreenState
             // Settings Content
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(ModernSpacing.lg),
+                padding: EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -125,21 +125,21 @@ class _NotificationPreferencesScreenState
                       'Notification Channels',
                       'Choose how you want to receive notifications',
                     ),
-                    const SizedBox(height: ModernSpacing.lg),
+                    SizedBox(height: 24),
                     _buildChannelToggle(
                       'Email Notifications',
                       'Receive notifications via email',
                       NotificationChannel.EMAIL,
                       Icons.email,
                     ),
-                    const SizedBox(height: ModernSpacing.md),
+                    SizedBox(height: 16),
                     _buildChannelToggle(
                       'Push Notifications',
                       'Receive notifications on your device',
                       NotificationChannel.PUSH,
                       Icons.notifications_active,
                     ),
-                    const SizedBox(height: ModernSpacing.md),
+                    SizedBox(height: 16),
                     _buildChannelToggle(
                       'In-App Notifications',
                       'See notifications within the app',
@@ -147,42 +147,42 @@ class _NotificationPreferencesScreenState
                       Icons.chat_bubble,
                     ),
 
-                    const SizedBox(height: ModernSpacing.xl),
+                    SizedBox(height: 32),
 
                     // Notification Types Section
                     _buildSectionHeader(
                       'Notification Types',
                       'Select which events you want to be notified about',
                     ),
-                    const SizedBox(height: ModernSpacing.lg),
+                    SizedBox(height: 24),
                     _buildEventTypeToggle(
                       'Coach Session Created',
                       'New sessions from coaches you follow',
                       NotificationEvent.COACH_SESSION_CREATED,
                       Icons.event,
                     ),
-                    const SizedBox(height: ModernSpacing.md),
+                    SizedBox(height: 16),
                     _buildEventTypeToggle(
                       'Session Spot Available',
                       'A spot became available in a session',
                       NotificationEvent.SESSION_SPOT_AVAILABLE,
                       Icons.event_available,
                     ),
-                    const SizedBox(height: ModernSpacing.md),
+                    SizedBox(height: 16),
                     _buildEventTypeToggle(
                       'Waitlist Available',
                       'You can book from the waitlist',
                       NotificationEvent.WAITLIST_AVAILABLE,
                       Icons.assignment,
                     ),
-                    const SizedBox(height: ModernSpacing.md),
+                    SizedBox(height: 16),
                     _buildEventTypeToggle(
                       'Session Cancelled',
                       'A session you\'re booked for was cancelled',
                       NotificationEvent.SESSION_CANCELLED,
                       Icons.cancel,
                     ),
-                    const SizedBox(height: ModernSpacing.md),
+                    SizedBox(height: 16),
                     _buildEventTypeToggle(
                       'Booking Confirmed',
                       'Your booking has been confirmed',
@@ -190,7 +190,7 @@ class _NotificationPreferencesScreenState
                       Icons.check_circle,
                     ),
 
-                    const SizedBox(height: ModernSpacing.xl),
+                    SizedBox(height: 32),
 
                     // Save Button
                     ModernButton(
@@ -219,7 +219,7 @@ class _NotificationPreferencesScreenState
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: ModernSpacing.sm),
+        SizedBox(height: 12),
         Text(
           subtitle,
           style: ModernTypography.bodyMedium.copyWith(
@@ -239,7 +239,7 @@ class _NotificationPreferencesScreenState
     bool isEnabled = _isChannelEnabled(channel);
 
     return GlassCard(
-      padding: const EdgeInsets.all(ModernSpacing.md),
+      padding: EdgeInsets.all(16),
       onTap: () {
         setState(() {
           _preferences = _preferences.copyWith(
@@ -265,14 +265,14 @@ class _NotificationPreferencesScreenState
                         Colors.grey[100]!,
                       ],
                     ),
-              borderRadius: BorderRadius.circular(ModernRadius.lg),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
               icon,
               color: isEnabled ? Colors.white : Colors.grey[600],
             ),
           ),
-          const SizedBox(width: ModernSpacing.md),
+          SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,7 +283,7 @@ class _NotificationPreferencesScreenState
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: ModernSpacing.xs),
+                SizedBox(height: 8),
                 Text(
                   description,
                   style: ModernTypography.labelMedium.copyWith(
@@ -340,7 +340,7 @@ class _NotificationPreferencesScreenState
     bool isEnabled = _isEventTypeEnabled(event);
 
     return GlassCard(
-      padding: const EdgeInsets.all(ModernSpacing.md),
+      padding: EdgeInsets.all(16),
       onTap: () {
         setState(() {
           _preferences = _preferences.copyWith(
@@ -359,7 +359,7 @@ class _NotificationPreferencesScreenState
             height: 48,
             decoration: BoxDecoration(
               color: isEnabled ? Colors.blue.withOpacity(0.1) : Colors.grey[100],
-              borderRadius: BorderRadius.circular(ModernRadius.lg),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isEnabled
                     ? Colors.blue.withOpacity(0.3)
@@ -372,7 +372,7 @@ class _NotificationPreferencesScreenState
               color: isEnabled ? Colors.blue : Colors.grey[600],
             ),
           ),
-          const SizedBox(width: ModernSpacing.md),
+          SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,7 +383,7 @@ class _NotificationPreferencesScreenState
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: ModernSpacing.xs),
+                SizedBox(height: 8),
                 Text(
                   description,
                   style: ModernTypography.labelMedium.copyWith(
@@ -408,7 +408,7 @@ class _NotificationPreferencesScreenState
             },
             activeColor: Colors.blue,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(ModernRadius.sm),
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
         ],
