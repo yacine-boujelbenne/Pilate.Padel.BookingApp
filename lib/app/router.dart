@@ -28,6 +28,9 @@ import '../views/screens/member/member_home_screen.dart';
 import '../views/screens/member/member_profile_screen.dart';
 import '../views/screens/member/member_waitlist_screen.dart';
 import '../views/screens/member/payment_success_screen.dart';
+import '../views/screens/member/my_coaches_screen.dart';
+import '../views/screens/member/notification_center_screen.dart';
+import '../views/screens/common/notification_preferences_screen.dart';
 
 class AppRouter {
   AppRouter(this.authController);
@@ -85,6 +88,15 @@ class AppRouter {
       GoRoute(
           path: '/member/profile',
           builder: (context, state) => const MemberProfileScreen()),
+      GoRoute(
+          path: '/member/my-coaches',
+          builder: (context, state) => const MyCoachesScreen()),
+      GoRoute(
+          path: '/member/notifications',
+          builder: (context, state) => const NotificationCenterScreen()),
+      GoRoute(
+          path: '/notification-preferences',
+          builder: (context, state) => const NotificationPreferencesScreen()),
       GoRoute(
           path: '/member/booking/new',
           builder: (context, state) => const MemberHomeScreen()),

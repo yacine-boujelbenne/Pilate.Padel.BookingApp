@@ -12,6 +12,7 @@ import '../../widgets/chip_badge.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/flex_bottom_nav.dart';
 import '../../widgets/stat_card.dart';
+import '../../widgets/modern_components.dart';
 
 String _capitalize(String value) {
   if (value.isEmpty) return value;

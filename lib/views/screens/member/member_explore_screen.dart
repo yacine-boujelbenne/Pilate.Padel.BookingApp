@@ -9,6 +9,7 @@ import '../../widgets/coach_card.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/flex_bottom_nav.dart';
 import '../../widgets/form_fields.dart';
+import '../../widgets/modern_components.dart';
 
 class MemberExploreScreen extends StatefulWidget {
   const MemberExploreScreen({super.key});

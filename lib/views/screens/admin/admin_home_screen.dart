@@ -12,6 +12,7 @@ import '../../widgets/coach_card.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/form_fields.dart';
 import '../../widgets/stat_card.dart';
+import '../../widgets/modern_components.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});

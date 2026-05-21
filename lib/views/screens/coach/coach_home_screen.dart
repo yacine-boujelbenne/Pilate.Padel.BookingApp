@@ -16,6 +16,7 @@ import '../../widgets/flex_app_bar.dart';
 import '../../widgets/form_fields.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/toast_message.dart';
+import '../../widgets/modern_components.dart';
 
 class CoachHomeScreen extends StatefulWidget {
   const CoachHomeScreen({super.key});

@@ -6,6 +6,7 @@ import '../../models/session_model.dart';
 import '../../l10n/locale_text.dart';
 import 'buttons.dart';
 import 'full_session_banner.dart';
+import 'modern_components.dart';
 import 'spots_bar.dart';
 
 class SessionCard extends StatelessWidget {
@@ -32,12 +33,9 @@ class SessionCard extends StatelessWidget {
     final start = DateFormat('HH:mm').format(session.startAt);
     final end = DateFormat('HH:mm').format(session.endAt);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return GlossCard(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       child: Column(
         children: [
           Row(
@@ -121,6 +119,7 @@ class SessionCard extends StatelessWidget {
           else
             _AnimatedBookButton(onPressed: onBook),
         ],
+      ),
       ),
     );
   }

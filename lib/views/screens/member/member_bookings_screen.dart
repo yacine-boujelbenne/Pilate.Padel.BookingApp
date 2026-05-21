@@ -9,6 +9,7 @@ import '../../../l10n/locale_text.dart';
 import '../../widgets/chip_badge.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/flex_bottom_nav.dart';
+import '../../widgets/modern_components.dart';
 
 class MemberBookingsScreen extends StatefulWidget {
   const MemberBookingsScreen({super.key});
