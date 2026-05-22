@@ -19,7 +19,10 @@ import 'controllers/locale_controller.dart';
 import 'controllers/settings_controller.dart';
 import 'controllers/session_controller.dart';
 import 'controllers/waitlist_controller.dart';
+import 'controllers/notification_controller.dart';
+import 'controllers/follow_controller.dart';
 import 'services/notification_service.dart';
+import 'views/widgets/modern_theme.dart';
 import 'l10n/generated/app_localizations.dart';
 
 Future<void> main() async {
@@ -169,13 +172,15 @@ class FlexPilatesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AdminController()),
         ChangeNotifierProvider(create: (_) => CoachController()),
         ChangeNotifierProvider(create: (_) => SettingsController()),
+        ChangeNotifierProvider(create: (_) => NotificationController()),
+        ChangeNotifierProvider(create: (_) => FollowController()),
       ],
       child: Consumer<LocaleController>(
         builder: (context, localeController, _) {
           return MaterialApp.router(
             title: 'Fléx Pilates Studio',
             debugShowCheckedModeBanner: false,
-            theme: buildAppTheme(),
+            theme: ModernTheme.lightTheme(),
             routerConfig: router,
             locale: localeController.locale,
             supportedLocales: const [

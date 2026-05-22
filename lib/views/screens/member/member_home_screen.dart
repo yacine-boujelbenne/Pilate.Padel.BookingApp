@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/booking_controller.dart';
+import '../../../controllers/notification_controller.dart';
 import '../../../controllers/session_controller.dart';
 import '../../../controllers/waitlist_controller.dart';
 import '../../../models/session_model.dart';
@@ -12,8 +13,8 @@ import '../../widgets/avatar_widget.dart';
 import '../../widgets/booking_modal.dart';
 import '../../widgets/calendar_row.dart';
 import '../../widgets/chip_badge.dart';
-import '../../widgets/flex_app_bar.dart';
 import '../../widgets/flex_bottom_nav.dart';
+import '../../widgets/modern_components.dart';
 import '../../widgets/payment_modal.dart';
 import '../../widgets/session_card.dart';
 import '../../widgets/toast_message.dart';
@@ -177,10 +178,32 @@ class _MemberHomeScreenState extends State<MemberHomeScreen> {
         backgroundColor: AppColors.sageDark,
         child: const Icon(Icons.chat_bubble_outline, color: AppColors.white),
       ),
-      appBar: const FlexAppBar(
-        title: 'Fléx',
-        badgeText: 'Member',
-        showBack: false,
+      appBar: AppBar(
+        title: const Text('Fléx'),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.sageDark,
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications),
+                onPressed: () => context.push('/notifications'),
+              ),
+              Consumer<NotificationController>(
+                builder: (context, controller, _) {
+                  final unreadCount = controller.unreadCount;
+                  if (unreadCount == 0) return const SizedBox.shrink();
+                  return Positioned(
+                    right: 8,
+                    top: 8,
+                    child: NotificationBadge(count: unreadCount),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
       ),
       bottomNavigationBar: FlexBottomNav(
         currentIndex: 0,

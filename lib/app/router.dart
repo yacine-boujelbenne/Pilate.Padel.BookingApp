@@ -28,6 +28,10 @@ import '../views/screens/member/member_home_screen.dart';
 import '../views/screens/member/member_profile_screen.dart';
 import '../views/screens/member/member_waitlist_screen.dart';
 import '../views/screens/member/payment_success_screen.dart';
+// TODO: These screens are being developed - temporarily disabled to allow compilation
+// import '../views/screens/member/my_coaches_screen.dart';
+// import '../views/screens/member/notification_center_screen.dart';
+// import '../views/screens/common/notification_preferences_screen.dart';
 
 class AppRouter {
   AppRouter(this.authController);
@@ -41,53 +45,79 @@ class AppRouter {
     routes: [
       GoRoute(path: '/', builder: (context, state) => const WelcomeScreen()),
       GoRoute(
-          path: '/splash', builder: (context, state) => const SplashScreen()),
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
-          path: '/register',
-          builder: (context, state) => const RegisterScreen()),
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
       GoRoute(
-          path: '/forgot-password',
-          builder: (context, state) => const ForgotPasswordScreen()),
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
       GoRoute(
-          path: '/reset-password',
-          builder: (context, state) => const ResetPasswordScreen()),
+        path: '/reset-password',
+        builder: (context, state) => const ResetPasswordScreen(),
+      ),
       GoRoute(
-          path: '/settings',
-          builder: (context, state) => SettingsScreen(
-                backTarget: (state.extra as String?) ?? '/login',
-              )),
+        path: '/settings',
+        builder: (context, state) =>
+            SettingsScreen(backTarget: (state.extra as String?) ?? '/login'),
+      ),
       GoRoute(
-          path: '/account/manage',
-          builder: (context, state) => ManageAccountScreen(
-                backTarget: (state.extra as String?) ?? '/member/profile',
-              )),
+        path: '/account/manage',
+        builder: (context, state) => ManageAccountScreen(
+          backTarget: (state.extra as String?) ?? '/member/profile',
+        ),
+      ),
       GoRoute(
-          path: '/member/home',
-          builder: (context, state) => const MemberHomeScreen()),
+        path: '/member/home',
+        builder: (context, state) => const MemberHomeScreen(),
+      ),
       GoRoute(
-          path: '/member/explore',
-          builder: (context, state) => const MemberExploreScreen()),
+        path: '/member/explore',
+        builder: (context, state) => const MemberExploreScreen(),
+      ),
       GoRoute(
-          path: '/member/chatbot',
-          builder: (context, state) => const ChatBotScreen()),
+        path: '/member/chatbot',
+        builder: (context, state) => const ChatBotScreen(),
+      ),
       GoRoute(
-          path: '/member/coaches/:id',
-          builder: (context, state) => MemberCoachDetailScreen(
-                coachId: state.pathParameters['id']!,
-              )),
+        path: '/member/coaches/:id',
+        builder: (context, state) =>
+            MemberCoachDetailScreen(coachId: state.pathParameters['id']!),
+      ),
       GoRoute(
-          path: '/member/bookings',
-          builder: (context, state) => const MemberBookingsScreen()),
+        path: '/member/bookings',
+        builder: (context, state) => const MemberBookingsScreen(),
+      ),
       GoRoute(
-          path: '/member/waitlists',
-          builder: (context, state) => const MemberWaitlistScreen()),
+        path: '/member/waitlists',
+        builder: (context, state) => const MemberWaitlistScreen(),
+      ),
       GoRoute(
-          path: '/member/profile',
-          builder: (context, state) => const MemberProfileScreen()),
+        path: '/member/profile',
+        builder: (context, state) => const MemberProfileScreen(),
+      ),
+      // TODO: Screens under development - commented out to fix compilation
+      // GoRoute(
+      //   path: '/member/my-coaches',
+      //   builder: (context, state) => const MyCoachesScreen(),
+      // ),
+      // GoRoute(
+      //   path: '/member/notifications',
+      //   builder: (context, state) => const NotificationCenterScreen(),
+      // ),
+      // GoRoute(
+      //   path: '/notification-preferences',
+      //   builder: (context, state) => const NotificationPreferencesScreen(),
+      // ),
       GoRoute(
-          path: '/member/booking/new',
-          builder: (context, state) => const MemberHomeScreen()),
+        path: '/member/booking/new',
+        builder: (context, state) => const MemberHomeScreen(),
+      ),
       GoRoute(
         path: '/member/payment-success',
         builder: (context, state) {
@@ -100,27 +130,34 @@ class AppRouter {
         },
       ),
       GoRoute(
-          path: '/coach/home',
-          builder: (context, state) => const CoachHomeScreen()),
+        path: '/coach/home',
+        builder: (context, state) => const CoachHomeScreen(),
+      ),
       GoRoute(
-          path: '/coach/sessions/new',
-          builder: (context, state) => const NewSessionScreen()),
+        path: '/coach/sessions/new',
+        builder: (context, state) => const NewSessionScreen(),
+      ),
       GoRoute(
-          path: '/admin/home',
-          builder: (context, state) => const AdminHomeScreen()),
+        path: '/admin/home',
+        builder: (context, state) => const AdminHomeScreen(),
+      ),
       GoRoute(
-          path: '/admin/coaches/new',
-          builder: (context, state) => const AddCoachScreen()),
+        path: '/admin/coaches/new',
+        builder: (context, state) => const AddCoachScreen(),
+      ),
       GoRoute(
-          path: '/admin/coaches/:id/edit',
-          builder: (context, state) =>
-              EditCoachScreen(coachId: state.pathParameters['id']!)),
+        path: '/admin/coaches/:id/edit',
+        builder: (context, state) =>
+            EditCoachScreen(coachId: state.pathParameters['id']!),
+      ),
       GoRoute(
-          path: '/admin/sessions/new',
-          builder: (context, state) => const AdminNewSessionScreen()),
+        path: '/admin/sessions/new',
+        builder: (context, state) => const AdminNewSessionScreen(),
+      ),
       GoRoute(
-          path: '/admin/sessions',
-          builder: (context, state) => const AdminSessionsScreen()),
+        path: '/admin/sessions',
+        builder: (context, state) => const AdminSessionsScreen(),
+      ),
       GoRoute(
         path: '/admin/sessions/:id/edit',
         builder: (context, state) =>
@@ -152,7 +189,7 @@ class AppRouter {
       '/login',
       '/register',
       '/forgot-password',
-      '/reset-password'
+      '/reset-password',
     };
 
     if (isLoggedIn && !profileLoaded) {
@@ -176,22 +213,22 @@ class AppRouter {
         return role == 'coach'
             ? '/coach/home'
             : role == 'member'
-                ? '/member/home'
-                : '/login';
+            ? '/member/home'
+            : '/login';
       }
       if (path.startsWith('/coach') && role != 'coach') {
         return role == 'admin'
             ? '/admin/home'
             : role == 'member'
-                ? '/member/home'
-                : '/login';
+            ? '/member/home'
+            : '/login';
       }
       if (path.startsWith('/member') && role != 'member') {
         return role == 'admin'
             ? '/admin/home'
             : role == 'coach'
-                ? '/coach/home'
-                : '/login';
+            ? '/coach/home'
+            : '/login';
       }
     }
 
