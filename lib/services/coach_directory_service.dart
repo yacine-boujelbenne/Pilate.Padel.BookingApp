@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 
 import '../models/session_model.dart';
+import 'session_count_reconciler.dart';
 import 'supabase_service.dart';
 
 class CoachDirectoryEntry {
@@ -108,7 +109,12 @@ class CoachDirectoryService {
           'CoachDirectoryService.fetchCoachRelatedSessions returned ${rawRows.length} rows for coach $coachId');
     }
 
-    return rawRows.map((row) {
+    final reconciledRows = await SessionCountReconciler.reconcile(
+      _client,
+      rawRows,
+    );
+
+    return reconciledRows.map((row) {
       final map = Map<String, dynamic>.from(row as Map);
       final studio = map['studios'] as Map<String, dynamic>?;
       return SessionModel.fromMap({

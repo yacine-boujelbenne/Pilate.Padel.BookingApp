@@ -8,6 +8,7 @@ import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/coach_controller.dart';
 import '../../../controllers/session_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/avatar_widget.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/chip_badge.dart';
@@ -73,46 +74,55 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Propose edit'),
+          title: Text(context.t('Propose edit', 'Proposer une modification')),
           content: StatefulBuilder(
             builder: (context, setState) => SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  FlexFormInput(controller: titleController, hint: 'Title'),
+                  FlexFormInput(
+                      controller: titleController, hint: context.tr('Title')),
                   const SizedBox(height: 8),
                   FlexFormInput(
-                      controller: dateController, hint: 'Date (YYYY-MM-DD)'),
+                      controller: dateController,
+                      hint:
+                          context.t('Date (YYYY-MM-DD)', 'Date (YYYY-MM-DD)')),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
                         child: FlexFormInput(
-                            controller: startController, hint: 'Start (HH:mm)'),
+                            controller: startController,
+                            hint: context.t('Start (HH:mm)', 'Début (HH:mm)')),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: FlexFormInput(
-                            controller: endController, hint: 'End (HH:mm)'),
+                            controller: endController,
+                            hint: context.t('End (HH:mm)', 'Fin (HH:mm)')),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   FlexFormInput(
                       controller: maxController,
-                      hint: 'Max participants',
+                      hint: context.t('Max participants', 'Participants max'),
                       keyboardType: TextInputType.number),
                   const SizedBox(height: 8),
                   FlexDropdown(
                     value: level,
-                    items: const [
-                      DropdownMenuItem(value: 'all', child: Text('All levels')),
+                    items: [
                       DropdownMenuItem(
-                          value: 'beginner', child: Text('Beginner')),
+                          value: 'all', child: Text(context.tr('All levels'))),
                       DropdownMenuItem(
-                          value: 'intermediate', child: Text('Intermediate')),
+                          value: 'beginner',
+                          child: Text(context.tr('Beginner'))),
                       DropdownMenuItem(
-                          value: 'advanced', child: Text('Advanced')),
+                          value: 'intermediate',
+                          child: Text(context.tr('Intermediate'))),
+                      DropdownMenuItem(
+                          value: 'advanced',
+                          child: Text(context.tr('Advanced'))),
                     ],
                     onChanged: (value) =>
                         setState(() => level = value ?? 'all'),
@@ -120,7 +130,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                   const SizedBox(height: 8),
                   FlexFormInput(
                       controller: priceController,
-                      hint: 'Price TND',
+                      hint: context.t('Price TND', 'Prix TND'),
                       keyboardType: TextInputType.number),
                 ],
               ),
@@ -129,15 +139,15 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: Text(context.tr('Cancel')),
             ),
             TextButton(
               onPressed: () async {
                 final selectedDate =
                     DateTime.tryParse(dateController.text.trim());
                 if (selectedDate == null) {
-                  ToastMessage.show(
-                      context, 'Please enter a valid date (YYYY-MM-DD)');
+                  ToastMessage.show(context,
+                      context.tr('Please enter a valid date (YYYY-MM-DD)'));
                   return;
                 }
 
@@ -145,7 +155,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                 final endParts = endController.text.trim().split(':');
                 if (startParts.length != 2 || endParts.length != 2) {
                   ToastMessage.show(
-                      context, 'Please enter valid times (HH:mm)');
+                      context, context.tr('Please enter valid times (HH:mm)'));
                   return;
                 }
 
@@ -158,7 +168,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                     endHour == null ||
                     endMinute == null) {
                   ToastMessage.show(
-                      context, 'Please enter valid times (HH:mm)');
+                      context, context.tr('Please enter valid times (HH:mm)'));
                   return;
                 }
 
@@ -179,21 +189,22 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
 
                 if (!end.isAfter(start)) {
                   ToastMessage.show(
-                      context, 'End time must be after start time');
+                      context, context.tr('End time must be after start time'));
                   return;
                 }
 
                 final max = int.tryParse(maxController.text.trim()) ?? 10;
                 if (max <= 0) {
-                  ToastMessage.show(
-                      context, 'Max participants must be greater than 0');
+                  ToastMessage.show(context,
+                      context.tr('Max participants must be greater than 0'));
                   return;
                 }
 
                 final price = double.tryParse(priceController.text.trim()) ?? 0;
+                final sessionController = context.read<SessionController>();
 
                 try {
-                  await context.read<SessionController>().proposeSessionEdit(
+                  await sessionController.proposeSessionEdit(
                     sessionId: sessionId,
                     coachId: coachId,
                     changes: {
@@ -205,18 +216,23 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                       'proposed_level': level,
                     },
                   );
-                  if (!mounted) return;
-                  Navigator.of(dialogContext).pop();
-                  ToastMessage.show(context, 'Edit request sent');
+                  if (dialogContext.mounted) {
+                    Navigator.of(dialogContext).pop();
+                    ToastMessage.show(
+                        dialogContext,
+                        context.t('Edit request sent',
+                            'Demande de modification envoyée'));
+                  }
                 } catch (_) {
-                  if (mounted) {
-                    final error = context.read<SessionController>().error ??
-                        'Could not submit edit request';
-                    ToastMessage.show(context, error);
+                  if (dialogContext.mounted) {
+                    final error = sessionController.error ??
+                        context.t('Could not submit edit request',
+                            'Impossible d’envoyer la demande de modification');
+                    ToastMessage.show(dialogContext, error);
                   }
                 }
               },
-              child: const Text('Send'),
+              child: Text(context.tr('Send')),
             ),
           ],
         );
@@ -252,20 +268,27 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
 
     return Scaffold(
       appBar: FlexAppBar(
-        title: 'Coach Portal',
-        badgeText: 'Coach',
+        title: context.tr('Coach Portal'),
+        badgeText: context.tr('Coach'),
+        showBack: false,
         extraActions: [
           IconButton(
-            tooltip: 'Settings',
+            tooltip: context.tr('Notifications'),
+            icon: const Icon(Icons.notifications_none,
+                color: AppColors.sageDark),
+            onPressed: () => context.go('/coach/notifications'),
+          ),
+          IconButton(
+            tooltip: context.tr('Settings'),
             icon: const Icon(Icons.settings, color: AppColors.sageDark),
             onPressed: () => context.go('/settings', extra: '/coach/home'),
           ),
           IconButton(
-            tooltip: 'Sign out',
+            tooltip: context.tr('Sign out'),
             icon: const Icon(Icons.logout, color: AppColors.sageDark),
             onPressed: () async {
               await context.read<AuthController>().signOut();
-              if (context.mounted) context.go('/login');
+              if (context.mounted) context.go('/');
             },
           ),
         ],
@@ -282,10 +305,9 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
               children: [
                 AvatarWidget(initials: initials, size: 52),
                 SizedBox(width: 10),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(displayName),
-                  Text(speciality)
-                ]),
+                Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [Text(displayName), Text(speciality)]),
               ],
             ),
           ),
@@ -298,24 +320,27 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               StatCard(
-                  value: c.sessionsToday.toString(), label: 'Sessions today'),
-              StatCard(value: c.sessionsWeek.toString(), label: 'Sessions week'),
+                  value: c.sessionsToday.toString(),
+                  label: context.t('Sessions today', 'Séances du jour')),
+              StatCard(
+                  value: c.sessionsWeek.toString(),
+                  label: context.t('Sessions week', 'Séances de la semaine')),
               StatCard(
                   value:
                       '${(c.averageFillRate * 100).clamp(0, 100).toStringAsFixed(0)}%',
-                  label: 'Average fill'),
+                  label: context.t('Average fill', 'Taux moyen')),
               StatCard(
                   value: c.upcomingSessions.toString(),
-                  label: 'Upcoming'),
+                  label: context.tr('Upcoming')),
             ],
           ),
           const SizedBox(height: 12),
-          Text('YOUR SESSIONS', style: AppTextStyles.sectionLabel),
+          Text(context.tr('YOUR SESSIONS'), style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
           if (schedule.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(12),
-              child: Text('No sessions yet'),
+              child: Text(context.tr('No sessions yet')),
             )
           else
             ...schedule.map((item) {
@@ -366,16 +391,20 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                               extra: '/coach/home',
                             ),
                             icon: const Icon(Icons.people, size: 16),
-                            label: Text('View Attendees ($booked)'),
+                            label: Text(
+                                '${context.tr('View')} Attendees ($booked)'),
                           ),
                         const SizedBox(width: 8),
                         if (status == 'scheduled')
                           TextButton(
                             onPressed: () => _openEditRequestDialog(item),
-                            child: const Text('Propose edit'),
+                            child: Text(context.t(
+                                'Propose edit', 'Proposer une modification')),
                           )
                         else if (status == 'pending')
-                          Text('Awaiting admin approval',
+                          Text(
+                              context.t('Awaiting admin approval',
+                                  'En attente de validation admin'),
                               style: AppTextStyles.sessionMeta),
                       ],
                     ),
@@ -384,7 +413,8 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
               );
             }),
           const SizedBox(height: 12),
-          Text('SESSION FILL RATE BY DAY', style: AppTextStyles.sectionLabel),
+          Text(context.tr('SESSION FILL RATE BY DAY'),
+              style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),
           Container(
             height: 120,
@@ -431,7 +461,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
           ),
           const SizedBox(height: 12),
           FlexPrimaryButton(
-              label: '+ Create new session',
+              label: context.t('+ Create new session', '+ Créer une séance'),
               onPressed: () => context.go('/coach/sessions/new')),
         ],
       ),

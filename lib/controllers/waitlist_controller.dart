@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/waitlist_entry.dart';
+import '../services/follow_service.dart';
 import '../services/supabase_service.dart';
 
 class WaitlistController extends ChangeNotifier {
   final _client = SupabaseService.instance.client;
+  final FollowService _followService = FollowService();
 
   List<WaitlistEntry> _entries = [];
   bool _loading = false;
@@ -42,6 +44,7 @@ class WaitlistController extends ChangeNotifier {
         'notify_channel': notifyChannel,
         'position': position,
       });
+      await _followService.followSession(sessionId);
       _error = null;
       await fetchMemberWaitlists();
     } catch (e) {

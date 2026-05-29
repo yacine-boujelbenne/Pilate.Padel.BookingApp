@@ -161,6 +161,29 @@ class AdminController extends ChangeNotifier {
     await fetchPendingValidations();
   }
 
+  Future<void> sendMessageToUser({
+    required String recipientId,
+    required String content,
+  }) async {
+    final message = content.trim();
+    if (message.isEmpty) {
+      throw Exception('Message cannot be empty');
+    }
+
+    final senderId = _client.auth.currentUser?.id;
+    if (senderId == null) {
+      throw Exception('Not authenticated');
+    }
+
+    await _client.from('notifications').insert({
+      'member_id': recipientId,
+      'title': 'Message from admin',
+      'body': message,
+      'is_read': false,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    });
+  }
+
   Future<void> rejectPayment(String bookingId) async {
     await _client
         .from('bookings')

@@ -1,0 +1,10 @@
+{
+    "event_type": "session_spot_opened",
+    "session_id": "00000000-0000-0000-0000-000000000002",
+    "booking_id": "00000000-0000-0000-0000-000000000101",
+    "title": "Spot opened",
+    "body": "A spot opened up in a session you follow.",
+    "data": {
+        "priority": "high"
+    }
+}

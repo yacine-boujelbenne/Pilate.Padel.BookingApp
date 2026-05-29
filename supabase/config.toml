@@ -212,11 +212,11 @@ web3 = 30
 [auth.email]
 # Allow/disallow new user signups via email to your project.
 enable_signup = true
+# Require users to confirm their email before signing in.
+enable_confirmations = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
-# If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
@@ -227,19 +227,27 @@ otp_length = 6
 otp_expiry = 3600
 
 # Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+[auth.email.smtp]
+enabled = true
+host = "env(MAILTRAP_SMTP_HOST)"
+port = 587
+user = "env(MAILTRAP_SMTP_USER)"
+pass = "env(MAILTRAP_SMTP_PASS)"
+admin_email = "env(MAILTRAP_FROM_EMAIL)"
+sender_name = "Flex Pilates Studio"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+[auth.email.template.confirmation]
+subject = "Confirm your email address"
+content_path = "D:/pilate.padel/supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your password"
+content_path = "D:/pilate.padel/supabase/templates/recovery.html"
+
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Your password was changed"
+content_path = "D:/pilate.padel/supabase/templates/password_changed_notification.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]

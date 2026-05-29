@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/session_count_reconciler.dart';
 import '../services/supabase_service.dart';
 
 class CoachController extends ChangeNotifier {
@@ -37,7 +38,7 @@ class CoachController extends ChangeNotifier {
             .select()
             .eq('coach_id', uid)
             .order('start_at');
-        _schedule = (res as List).cast<Map<String, dynamic>>();
+        _schedule = await SessionCountReconciler.reconcile(_client, res as List);
         _updateDashboardMetrics();
       }
       _error = null;

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/booking_controller.dart';
+import '../../../controllers/session_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/chip_badge.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/flex_bottom_nav.dart';
@@ -26,6 +29,11 @@ class _MemberBookingsScreenState extends State<MemberBookingsScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BookingController>().fetchMemberBookings();
     });
+
+    // Ensure sessions are loaded so we can display titles for bookings
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SessionController>().fetchAllSessions();
+    });
   }
 
   @override
@@ -37,6 +45,18 @@ class _MemberBookingsScreenState extends State<MemberBookingsScreen>
   @override
   Widget build(BuildContext context) {
     final bookings = context.watch<BookingController>().bookings;
+    final sessions = context.watch<SessionController>().sessions;
+    final allSessions = context.watch<SessionController>().allSessions;
+    final sessionsById = {
+      for (final session in [...sessions, ...allSessions]) session.id: session,
+    };
+    final now = DateTime.now();
+    final upcomingBookings = bookings.where((booking) {
+      final session = sessionsById[booking.sessionId];
+      return booking.status == 'confirmed' &&
+          session != null &&
+          session.startAt.isAfter(now);
+    }).toList();
 
     return Scaffold(
       appBar: const FlexAppBar(title: 'My Bookings', badgeText: 'Member'),
@@ -60,7 +80,10 @@ class _MemberBookingsScreenState extends State<MemberBookingsScreen>
           TabBar(
             controller: _tabs,
             labelColor: AppColors.sageDark,
-            tabs: const [Tab(text: 'Bookings'), Tab(text: '🧾 Payments')],
+            tabs: [
+              Tab(text: context.t('Bookings', 'Réservations')),
+              Tab(text: context.t('🧾 Payments', '🧾 Paiements')),
+            ],
           ),
           Expanded(
             child: TabBarView(
@@ -68,46 +91,58 @@ class _MemberBookingsScreenState extends State<MemberBookingsScreen>
               children: [
                 ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: bookings.length,
+                  itemCount: upcomingBookings.length,
                   itemBuilder: (_, i) {
-                    final b = bookings[i];
-                    final upcoming = b.status == 'confirmed';
-                    return Opacity(
-                      opacity: upcoming ? 1 : 0.65,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.circular(14)),
-                        child: Row(
-                          children: [
-                            Expanded(
-                                child: Text(
-                                    'Session ${b.sessionId.substring(0, 6)}',
-                                    style: AppTextStyles.body)),
-                            ChipBadge(
-                                text: upcoming ? 'Confirmed' : 'Done',
-                                variant: upcoming
-                                    ? ChipBadgeVariant.green
-                                    : ChipBadgeVariant.sage),
-                            if (upcoming) ...[
-                              const SizedBox(width: 8),
-                              ElevatedButton(
-                                onPressed: () => context
-                                    .read<BookingController>()
-                                    .cancelBooking(b.id),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.redLight,
-                                  foregroundColor: AppColors.redDark,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
+                    final b = upcomingBookings[i];
+                    final session = sessionsById[b.sessionId];
+                    final sessionTitle = session?.title ??
+                        b.sessionId.substring(0, 6);
+                    final sessionDate = session == null
+                        ? ''
+                        : DateFormat('d/M/yyyy').format(session.startAt);
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(14)),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    '${context.t('Session', 'Séance')} $sessionTitle',
+                                    style: AppTextStyles.body),
+                                const SizedBox(height: 2),
+                                Text(
+                                  sessionDate.isEmpty
+                                      ? context.t('Upcoming', 'À venir')
+                                      : sessionDate,
+                                  style: AppTextStyles.sessionMeta,
                                 ),
-                                child: const Text('Cancel'),
-                              ),
-                            ],
-                          ],
-                        ),
+                              ],
+                            ),
+                          ),
+                          const ChipBadge(
+                              text: 'Confirmed',
+                              variant: ChipBadgeVariant.green),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () => context
+                                .read<BookingController>()
+                                .cancelBooking(b.id),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.redLight,
+                              foregroundColor: AppColors.redDark,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: Text(context.t('Cancel', 'Annuler')),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -118,7 +153,9 @@ class _MemberBookingsScreenState extends State<MemberBookingsScreen>
                     ...bookings.map(
                       (b) => ListTile(
                         tileColor: AppColors.white,
-                        title: Text('Payment ${b.id.substring(0, 6)}'),
+                        title: Text(
+                          '${context.t('Payment', 'Paiement')} ${sessionsById[b.sessionId]?.title ?? b.sessionId.substring(0, 6)}',
+                        ),
                         subtitle:
                             Text('${b.paidAmountTnd.toStringAsFixed(0)} TND'),
                         trailing: ChipBadge(
@@ -131,7 +168,7 @@ class _MemberBookingsScreenState extends State<MemberBookingsScreen>
                     ),
                     const SizedBox(height: 12),
                     Text(
-                        'Monthly total: ${bookings.fold<double>(0, (sum, b) => sum + b.paidAmountTnd).toStringAsFixed(0)} TND',
+                        '${context.t('Monthly total', 'Total mensuel')}: ${bookings.fold<double>(0, (sum, b) => sum + b.paidAmountTnd).toStringAsFixed(0)} TND',
                         style: AppTextStyles.body
                             .copyWith(fontWeight: FontWeight.bold)),
                   ],

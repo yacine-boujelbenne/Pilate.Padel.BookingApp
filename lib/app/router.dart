@@ -14,6 +14,7 @@ import '../views/screens/auth/register_screen.dart';
 import '../views/screens/auth/reset_password_screen.dart';
 import '../views/screens/auth/splash_screen.dart';
 import '../views/screens/coach/coach_home_screen.dart';
+import '../views/screens/coach/coach_notifications_screen.dart';
 import '../views/screens/coach/new_session_screen.dart';
 import '../views/screens/common/manage_account_screen.dart';
 import '../views/screens/common/session_attendees_screen.dart';
@@ -21,7 +22,9 @@ import '../views/screens/common/settings_screen.dart';
 import '../views/screens/member/member_bookings_screen.dart';
 import '../views/screens/member/member_coach_detail_screen.dart';
 import '../views/screens/member/member_explore_screen.dart';
+import '../views/screens/member/member_following_screen.dart';
 import '../views/screens/member/member_home_screen.dart';
+import '../views/screens/member/member_notifications_screen.dart';
 import '../views/screens/member/member_profile_screen.dart';
 import '../views/screens/member/member_waitlist_screen.dart';
 import '../views/screens/member/payment_success_screen.dart';
@@ -78,6 +81,12 @@ class AppRouter {
           path: '/member/profile',
           builder: (context, state) => const MemberProfileScreen()),
       GoRoute(
+          path: '/member/notifications',
+          builder: (context, state) => const MemberNotificationsScreen()),
+      GoRoute(
+          path: '/member/following',
+          builder: (context, state) => const MemberFollowingScreen()),
+      GoRoute(
           path: '/member/booking/new',
           builder: (context, state) => const MemberHomeScreen()),
       GoRoute(
@@ -94,6 +103,9 @@ class AppRouter {
       GoRoute(
           path: '/coach/home',
           builder: (context, state) => const CoachHomeScreen()),
+      GoRoute(
+          path: '/coach/notifications',
+          builder: (context, state) => const CoachNotificationsScreen()),
       GoRoute(
           path: '/coach/sessions/new',
           builder: (context, state) => const NewSessionScreen()),

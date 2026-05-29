@@ -50,19 +50,45 @@ class SessionNotificationService {
         return;
       }
 
-      // Create notification records for each member
-      final notifications = memberIds.map((memberId) {
-        return {
-          'member_id': memberId,
+      final payload = {
+        'event_type': 'session_cancelled',
+        'title': 'Session Cancelled',
+        'body':
+            '$sessionTitle has been cancelled. Your payment will be refunded.',
+        'recipient_user_ids': memberIds.toList(),
+        'push_provider': 'all',
+        'data': {
           'session_id': sessionId,
-          'title': 'Session Cancelled',
-          'body':
-              '$sessionTitle has been cancelled. Your payment will be refunded.',
-          'is_read': false,
-        };
-      }).toList();
+          'session_title': sessionTitle,
+          'source': 'session_notification_service',
+          'skip_push': true,
+        },
+      };
 
-      await _client.from('notifications').insert(notifications);
+      try {
+        await _client.functions.invoke(
+          'send-push-notification',
+          body: payload,
+        );
+      } catch (error) {
+        if (kDebugMode) {
+          debugPrint('Push function failed for cancelled session: $error');
+        }
+
+        // Fallback to inbox-only notifications if the push function is unavailable.
+        final notifications = memberIds.map((memberId) {
+          return {
+            'member_id': memberId,
+            'session_id': sessionId,
+            'title': 'Session Cancelled',
+            'body':
+                '$sessionTitle has been cancelled. Your payment will be refunded.',
+            'is_read': false,
+          };
+        }).toList();
+
+        await _client.from('notifications').insert(notifications);
+      }
 
       if (kDebugMode) {
         debugPrint(

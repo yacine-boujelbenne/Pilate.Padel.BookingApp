@@ -80,6 +80,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     }
                   },
           ),
+            SwitchListTile(
+              value: settings.remindersEnabled,
+              activeThumbColor: AppColors.sageDark,
+              title: Text(context.t('Session reminders', 'Rappels de session')),
+              subtitle: Text(context.t(
+                'Remind me before my booked sessions even when the app is closed.',
+                'Me rappeler avant mes séances réservées même lorsque l\'application est fermée.',
+              )),
+              onChanged: settings.isLoading
+                  ? null
+                  : (value) async {
+                      await settings.updateSettings(remindersEnabled: value);
+                      if (settings.error != null && context.mounted) {
+                        ToastMessage.show(context, settings.error!);
+                      }
+                    },
+            ),
           const SizedBox(height: 12),
           Text('ACCOUNT', style: AppTextStyles.sectionLabel),
           const SizedBox(height: 8),

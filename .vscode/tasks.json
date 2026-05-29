@@ -11,6 +11,120 @@
 			"isBackground": true,
 			"problemMatcher": [],
 			"group": "build"
+		},
+		{
+			"label": "flutter run chrome fixed messaging",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"run",
+				"-d",
+				"chrome"
+			],
+			"isBackground": true,
+			"problemMatcher": [
+				"$flutter"
+			],
+			"group": "build"
+		},
+		{
+			"label": "analyze admin messaging",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"analyze",
+				"lib/controllers/admin_controller.dart"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$flutter"
+			],
+			"group": "build"
+		},
+		{
+			"label": "analyze member home bookings",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"analyze",
+				"lib/views/screens/member/member_home_screen.dart"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$flutter"
+			],
+			"group": "build"
+		},
+		{
+			"label": "analyze member home bookings",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"analyze",
+				"lib/views/screens/member/member_home_screen.dart"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$flutter"
+			],
+			"group": "build"
+		},
+		{
+			"label": "analyze member home bookings",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"analyze",
+				"lib/views/screens/member/member_home_screen.dart"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$flutter"
+			],
+			"group": "build"
+		},
+		{
+			"label": "analyze member home bookings",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"analyze",
+				"lib/views/screens/member/member_home_screen.dart"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$flutter"
+			],
+			"group": "build"
+		},
+		{
+			"label": "analyze member home bookings",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"analyze",
+				"lib/views/screens/member/member_home_screen.dart"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$flutter"
+			],
+			"group": "build"
+		},
+		{
+			"label": "analyze member reservations",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"analyze",
+				"lib/views/screens/member/member_home_screen.dart",
+				"lib/views/screens/member/member_bookings_screen.dart"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$flutter"
+			],
+			"group": "build"
 		}
 	]
 }

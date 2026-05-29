@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/coach_controller.dart';
 import '../../../controllers/session_controller.dart';
 import '../../../services/supabase_service.dart';
+import '../../../l10n/locale_text.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/form_fields.dart';
@@ -50,7 +52,7 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
       }
     } catch (_) {
       if (mounted) {
-        ToastMessage.show(context, 'Could not load studios');
+        ToastMessage.show(context, context.tr('Could not load studios'));
       }
     } finally {
       if (mounted) {
@@ -65,6 +67,45 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
       return;
     }
     context.go('/coach/home');
+  }
+
+  Future<void> _pickDate() async {
+    final initialDate = DateTime.tryParse(_date.text.trim()) ?? DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+    );
+    if (picked == null) return;
+    setState(() {
+      _date.text = DateFormat('yyyy-MM-dd').format(picked);
+    });
+  }
+
+  Future<void> _pickTime(TextEditingController controller) async {
+    final current = _parseTime(controller.text) ?? TimeOfDay.now();
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: current,
+    );
+    if (picked == null) return;
+    setState(() {
+      controller.text = _formatTimeOfDay(picked);
+    });
+  }
+
+  TimeOfDay? _parseTime(String value) {
+    final parts = value.trim().split(':');
+    if (parts.length != 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  String _formatTimeOfDay(TimeOfDay timeOfDay) {
+    return '${timeOfDay.hour.toString().padLeft(2, '0')}:${timeOfDay.minute.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -83,20 +124,22 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
     if (coachId == null) return;
 
     if (_title.text.trim().isEmpty) {
-      ToastMessage.show(context, 'Please enter a session name');
+      ToastMessage.show(context, context.tr('Please enter a session name'));
       return;
     }
 
     final selectedDate = DateTime.tryParse(_date.text.trim());
     if (selectedDate == null) {
-      ToastMessage.show(context, 'Please enter a valid date (YYYY-MM-DD)');
+      ToastMessage.show(
+          context, context.tr('Please enter a valid date (YYYY-MM-DD)'));
       return;
     }
 
     final startParts = _start.text.trim().split(':');
     final endParts = _end.text.trim().split(':');
     if (startParts.length != 2 || endParts.length != 2) {
-      ToastMessage.show(context, 'Please enter valid times (HH:mm)');
+      ToastMessage.show(
+          context, context.tr('Please enter valid times (HH:mm)'));
       return;
     }
 
@@ -108,7 +151,8 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
         startMinute == null ||
         endHour == null ||
         endMinute == null) {
-      ToastMessage.show(context, 'Please enter valid times (HH:mm)');
+      ToastMessage.show(
+          context, context.tr('Please enter valid times (HH:mm)'));
       return;
     }
 
@@ -128,13 +172,15 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
     );
 
     if (!endAt.isAfter(startAt)) {
-      ToastMessage.show(context, 'End time must be after start time');
+      ToastMessage.show(
+          context, context.tr('End time must be after start time'));
       return;
     }
 
     final maxParticipants = int.tryParse(_max.text.trim()) ?? 10;
     if (maxParticipants <= 0) {
-      ToastMessage.show(context, 'Max participants must be greater than 0');
+      ToastMessage.show(
+          context, context.tr('Max participants must be greater than 0'));
       return;
     }
 
@@ -156,12 +202,13 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
       if (!mounted) return;
       await context.read<CoachController>().fetchCoachSchedule();
       if (!mounted) return;
-      ToastMessage.show(context, 'Session sent for approval');
+      ToastMessage.show(context, context.tr('Session sent for approval'));
       _goBack();
     } catch (_) {
       if (mounted) {
         final error = context.read<SessionController>().error;
-        ToastMessage.show(context, error ?? 'Could not create session');
+        ToastMessage.show(
+            context, error ?? context.tr('Could not create session'));
       }
     }
   }
@@ -170,26 +217,54 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
   Widget build(BuildContext context) {
     final loading = context.watch<SessionController>().isLoading;
     return Scaffold(
-      appBar: const FlexAppBar(
-        title: 'Create Session',
+      appBar: FlexAppBar(
+        title: context.tr('Create Session'),
         showBack: true,
         backTarget: '/coach/home',
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          FlexFormInput(controller: _title, hint: 'Session name'),
+          FlexFormInput(controller: _title, hint: context.tr('Session name')),
           const SizedBox(height: 8),
-          FlexFormInput(controller: _date, hint: 'Date (YYYY-MM-DD)'),
+          FlexFormInput(
+            controller: _date,
+            hint: context.tr('Select date (YYYY-MM-DD)'),
+            readOnly: true,
+            onTap: _pickDate,
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.calendar_month),
+              onPressed: _pickDate,
+            ),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
-                  child:
-                      FlexFormInput(controller: _start, hint: 'Start (HH:mm)')),
+                child: FlexFormInput(
+                  controller: _start,
+                  hint: context.t('Start (HH:mm)', 'Début (HH:mm)'),
+                  readOnly: true,
+                  onTap: () => _pickTime(_start),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.schedule),
+                    onPressed: () => _pickTime(_start),
+                  ),
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                  child: FlexFormInput(controller: _end, hint: 'End (HH:mm)')),
+                child: FlexFormInput(
+                  controller: _end,
+                  hint: context.t('End (HH:mm)', 'Fin (HH:mm)'),
+                  readOnly: true,
+                  onTap: () => _pickTime(_end),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.schedule),
+                    onPressed: () => _pickTime(_end),
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -199,19 +274,20 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
               child: Center(child: CircularProgressIndicator()),
             )
           else if (_studios.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('No studios available'),
+              child: Text(context.tr('No studios available')),
             )
           else ...[
-            const Text('Studio'),
+            Text(context.tr('Studio')),
             const SizedBox(height: 8),
             FlexDropdown(
               value: _selectedStudioId,
               items: _studios
                   .map((studio) => DropdownMenuItem<String>(
                         value: studio['id'] as String,
-                        child: Text(studio['name'] as String? ?? 'Studio'),
+                        child: Text(
+                            studio['name'] as String? ?? context.tr('Studio')),
                       ))
                   .toList(),
               onChanged: (value) => setState(() => _selectedStudioId = value),
@@ -220,28 +296,34 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
           ],
           FlexFormInput(
               controller: _max,
-              hint: 'Max participants',
+              hint: context.t('Max participants', 'Participants max'),
               keyboardType: TextInputType.number),
           const SizedBox(height: 8),
           FlexDropdown(
             value: _level,
-            items: const [
-              DropdownMenuItem(value: 'all', child: Text('All levels')),
-              DropdownMenuItem(value: 'beginner', child: Text('Beginner')),
+            items: [
               DropdownMenuItem(
-                  value: 'intermediate', child: Text('Intermediate')),
-              DropdownMenuItem(value: 'advanced', child: Text('Advanced')),
+                  value: 'all', child: Text(context.tr('All levels'))),
+              DropdownMenuItem(
+                  value: 'beginner', child: Text(context.tr('Beginner'))),
+              DropdownMenuItem(
+                  value: 'intermediate',
+                  child: Text(context.tr('Intermediate'))),
+              DropdownMenuItem(
+                  value: 'advanced', child: Text(context.tr('Advanced'))),
             ],
             onChanged: (v) => setState(() => _level = v ?? 'all'),
           ),
           const SizedBox(height: 8),
           FlexFormInput(
               controller: _price,
-              hint: 'Price TND',
+              hint: context.t('Price TND', 'Prix TND'),
               keyboardType: TextInputType.number),
           const SizedBox(height: 14),
           FlexPrimaryButton(
-            label: loading ? 'Creating...' : 'Create session',
+            label: loading
+                ? context.tr('Creating...')
+                : context.tr('Create session'),
             onPressed: loading ? null : _createSession,
           ),
         ],

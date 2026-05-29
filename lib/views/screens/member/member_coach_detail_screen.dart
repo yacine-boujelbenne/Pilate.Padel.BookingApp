@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import '../../../controllers/booking_controller.dart';
+import '../../../controllers/follow_controller.dart';
+import '../../../l10n/locale_text.dart';
 import '../../../models/session_model.dart';
 import '../../../services/coach_directory_service.dart';
 import '../../widgets/avatar_widget.dart';
@@ -34,6 +36,9 @@ class _MemberCoachDetailScreenState extends State<MemberCoachDetailScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FollowController>().loadFollowState();
+    });
     _load();
   }
 
@@ -48,7 +53,7 @@ class _MemberCoachDetailScreenState extends State<MemberCoachDetailScreen> {
       if (coach == null) {
         if (!mounted) return;
         setState(() {
-          _error = 'Coach not found';
+          _error = context.tr('Coach not found');
           _loading = false;
         });
         return;
@@ -110,8 +115,10 @@ class _MemberCoachDetailScreenState extends State<MemberCoachDetailScreen> {
                   });
                 } catch (_) {
                   if (mounted) {
-                    ToastMessage.show(context,
-                        'Could not complete booking. Please try again.');
+                    ToastMessage.show(
+                        context,
+                        context.tr(
+                            'Could not complete booking. Please try again.'));
                   }
                 }
               },
@@ -138,7 +145,7 @@ class _MemberCoachDetailScreenState extends State<MemberCoachDetailScreen> {
           : _error != null || coach == null
               ? Center(
                   child: Text(
-                    _error ?? 'Could not load coach details',
+                    _error ?? context.tr('Could not load coach details'),
                     style: AppTextStyles.body,
                   ),
                 )
@@ -172,19 +179,60 @@ class _MemberCoachDetailScreenState extends State<MemberCoachDetailScreen> {
                                 Text(
                                   coach.speciality?.trim().isNotEmpty == true
                                       ? coach.speciality!
-                                      : 'Coach',
+                                      : context.tr('Coach'),
                                   style: AppTextStyles.sessionMeta,
                                 ),
                               ],
                             ),
                           ),
-                          const ChipBadge(
-                              text: 'Active', variant: ChipBadgeVariant.green),
+                          ChipBadge(
+                              text: context.tr('Active'),
+                              variant: ChipBadgeVariant.green),
                         ],
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text('CONTACT INFO', style: AppTextStyles.sectionLabel),
+                    Consumer<FollowController>(
+                      builder: (context, follows, _) {
+                        final isFollowed =
+                            follows.isCoachFollowed(widget.coachId);
+                        return SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: follows.isLoading
+                                ? null
+                                : () async {
+                                    try {
+                                      await context
+                                          .read<FollowController>()
+                                          .toggleCoachFollow(widget.coachId);
+                                    } catch (_) {
+                                      if (mounted) {
+                                        ToastMessage.show(
+                                            context,
+                                            context.t(
+                                                'Could not update follow status. Please try again.',
+                                                'Impossible de mettre à jour le suivi. Veuillez réessayer.'));
+                                      }
+                                    }
+                                  },
+                            icon: Icon(
+                              isFollowed
+                                  ? Icons.notifications_active
+                                  : Icons.notifications_none,
+                            ),
+                            label: Text(
+                              isFollowed
+                                  ? context.tr('Watching coach')
+                                  : context.tr('Follow coach'),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Text(context.tr('CONTACT INFO'),
+                        style: AppTextStyles.sectionLabel),
                     const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -194,13 +242,14 @@ class _MemberCoachDetailScreenState extends State<MemberCoachDetailScreen> {
                       ),
                       child: Text(
                         coach.phone?.trim().isNotEmpty == true
-                            ? 'Phone: ${coach.phone}'
-                            : 'Phone: not provided',
+                            ? '${context.tr('Phone:')} ${coach.phone}'
+                            : context.tr('Phone: not provided'),
                         style: AppTextStyles.body,
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Text('RELATED SESSIONS', style: AppTextStyles.sectionLabel),
+                    Text(context.tr('RELATED SESSIONS'),
+                        style: AppTextStyles.sectionLabel),
                     const SizedBox(height: 6),
                     if (_sessions.isEmpty)
                       Container(
@@ -210,7 +259,8 @@ class _MemberCoachDetailScreenState extends State<MemberCoachDetailScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Text(
-                          'No scheduled sessions found for this coach.',
+                          context.tr(
+                              'No scheduled sessions found for this coach.'),
                           style: AppTextStyles.body,
                         ),
                       )
@@ -234,6 +284,7 @@ class _MemberCoachDetailScreenState extends State<MemberCoachDetailScreen> {
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
                                   child: Column(
@@ -257,11 +308,57 @@ class _MemberCoachDetailScreenState extends State<MemberCoachDetailScreen> {
                                     ],
                                   ),
                                 ),
-                                ChipBadge(
-                                  text: isUpcoming ? 'Book' : 'Closed',
-                                  variant: isUpcoming
-                                      ? ChipBadgeVariant.green
-                                      : ChipBadgeVariant.red,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    ChipBadge(
+                                      text: isUpcoming
+                                          ? context.tr('Book')
+                                          : context.tr('Closed'),
+                                      variant: isUpcoming
+                                          ? ChipBadgeVariant.green
+                                          : ChipBadgeVariant.red,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Consumer<FollowController>(
+                                      builder: (context, follows, _) {
+                                        final isFollowed = follows
+                                            .isSessionFollowed(session.id);
+                                        return TextButton.icon(
+                                          onPressed: follows.isLoading
+                                              ? null
+                                              : () async {
+                                                  try {
+                                                    await context
+                                                        .read<
+                                                            FollowController>()
+                                                        .toggleSessionFollow(
+                                                            session.id);
+                                                  } catch (_) {
+                                                    if (mounted) {
+                                                      ToastMessage.show(
+                                                          context,
+                                                          context.t(
+                                                              'Could not update follow status. Please try again.',
+                                                              'Impossible de mettre à jour le suivi. Veuillez réessayer.'));
+                                                    }
+                                                  }
+                                                },
+                                          icon: Icon(
+                                            isFollowed
+                                                ? Icons.notifications_active
+                                                : Icons.notifications_none,
+                                            size: 18,
+                                          ),
+                                          label: Text(
+                                            isFollowed
+                                                ? context.tr('Watching')
+                                                : context.tr('Follow'),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
