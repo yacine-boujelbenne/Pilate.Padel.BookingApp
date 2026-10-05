@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const mint = Color(0xFFEBF3EE);
+  static const forest = Color(0xFF173F35);
+  static const lime = Color(0xFFD9EF9F);
+  static const peach = Color(0xFFF0C6AE);
+  static const border = Color(0xFFE4E8E0);
+  static const mint = Color(0xFFF6F5EF);
   static const sage = Color(0xFF7A9082);
-  static const sageDark = Color(0xFF5A6E62);
+  static const sageDark = Color(0xFF173F35);
   static const sageLight = Color(0xFFA8BDB2);
   static const sagePale = Color(0xFFD4E4DA);
-  static const textDark = Color(0xFF2C3A33);
+  static const textDark = Color(0xFF173F35);
   static const textMid = Color(0xFF4E6057);
   static const textLight = Color(0xFF7A9082);
   static const white = Color(0xFFFFFFFF);
@@ -24,91 +27,104 @@ class AppColors {
 }
 
 class AppTextStyles {
-  static TextStyle get logoTitle => GoogleFonts.notoSerif(
-    fontSize: 32,
-    fontWeight: FontWeight.bold,
-    color: AppColors.white,
-  );
+  static TextStyle get logoTitle => const TextStyle(
+        fontFamily: 'FlexSerif',
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        color: AppColors.white,
+      );
 
-  static TextStyle get screenTitle => GoogleFonts.notoSerif(
-    fontSize: 18,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textDark,
-  );
+  static TextStyle get screenTitle => const TextStyle(
+        fontFamily: 'FlexSerif',
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textDark,
+      );
 
-  static TextStyle get modalTitle => GoogleFonts.notoSerif(
-    fontSize: 20,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textDark,
-  );
+  static TextStyle get modalTitle => const TextStyle(
+        fontFamily: 'FlexSerif',
+        fontSize: 26,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textDark,
+      );
 
-  static TextStyle get statNumber => GoogleFonts.notoSerif(
-    fontSize: 28,
-    fontWeight: FontWeight.bold,
-    color: AppColors.sageDark,
-  );
+  static TextStyle get statNumber => const TextStyle(
+        fontFamily: 'FlexSerif',
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        color: AppColors.sageDark,
+      );
 
-  static TextStyle get sectionLabel => GoogleFonts.inter(
-    fontSize: 11,
-    fontWeight: FontWeight.w600,
-    color: AppColors.sage,
-    letterSpacing: 0.8,
-  );
+  static TextStyle get sectionLabel => const TextStyle(
+        fontFamily: 'FlexSans',
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: AppColors.sage,
+        letterSpacing: 0.8,
+      );
 
-  static TextStyle get sessionTitle => GoogleFonts.inter(
-    fontSize: 15,
-    fontWeight: FontWeight.w600,
-    color: AppColors.textDark,
-  );
+  static TextStyle get sessionTitle => const TextStyle(
+        fontFamily: 'FlexSans',
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textDark,
+      );
 
-  static TextStyle get sessionMeta => GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    color: AppColors.sage,
-  );
+  static TextStyle get sessionMeta => const TextStyle(
+        fontFamily: 'FlexSans',
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: AppColors.sage,
+      );
 
-  static TextStyle get buttonPrimary => GoogleFonts.inter(
-    fontSize: 15,
-    fontWeight: FontWeight.w600,
-    color: AppColors.white,
-  );
+  static TextStyle get buttonPrimary => const TextStyle(
+        fontFamily: 'FlexSans',
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: AppColors.white,
+      );
 
-  static TextStyle get buttonSecondary => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: AppColors.sageDark,
-  );
+  static TextStyle get buttonSecondary => const TextStyle(
+        fontFamily: 'FlexSans',
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.sageDark,
+      );
 
-  static TextStyle get body => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textDark,
-  );
+  static TextStyle get body => const TextStyle(
+        fontFamily: 'FlexSans',
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textDark,
+      );
 
-  static TextStyle get chip =>
-      GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600);
+  static TextStyle get chip => const TextStyle(
+      fontFamily: 'FlexSans', fontSize: 11, fontWeight: FontWeight.w600);
 
-  static TextStyle get navLabel =>
-      GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w400);
+  static TextStyle get navLabel => const TextStyle(
+      fontFamily: 'FlexSans', fontSize: 10, fontWeight: FontWeight.w400);
 
-  static TextStyle get formLabel => GoogleFonts.inter(
-    fontSize: 12,
-    fontWeight: FontWeight.w600,
-    color: AppColors.sage,
-    letterSpacing: 0.8,
-  );
+  static TextStyle get formLabel => const TextStyle(
+        fontFamily: 'FlexSans',
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.sage,
+        letterSpacing: 0.8,
+      );
 
-  static TextStyle get formInput => GoogleFonts.inter(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textDark,
-  );
+  static TextStyle get formInput => const TextStyle(
+        fontFamily: 'FlexSans',
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textDark,
+      );
 
-  static TextStyle get priceTag => GoogleFonts.inter(
-    fontSize: 13,
-    fontWeight: FontWeight.bold,
-    color: AppColors.sageDark,
-  );
+  static TextStyle get priceTag => const TextStyle(
+        fontFamily: 'FlexSans',
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: AppColors.sageDark,
+      );
 }
 
 ThemeData buildAppTheme() {
@@ -121,7 +137,26 @@ ThemeData buildAppTheme() {
       secondary: AppColors.sage,
       surface: AppColors.white,
     ),
-    textTheme: GoogleFonts.interTextTheme(),
+    textTheme: ThemeData.light().textTheme.apply(fontFamily: 'FlexSans'),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.mint,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        elevation: 0,
+        minimumSize: const Size(48, 52),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+    ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: AppColors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+    ),
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
       fillColor: AppColors.mint,

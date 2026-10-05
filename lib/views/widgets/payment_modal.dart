@@ -27,7 +27,7 @@ class _PaymentModalState extends State<PaymentModal> {
     Widget tile(String key, String title, String subtitle, IconData icon) {
       final selected = _method == key;
       return InkWell(
-        onTap: () => setState(() => _method = key),
+        onTap: key == 'cash' ? () => setState(() => _method = key) : null,
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.all(12),
@@ -98,9 +98,9 @@ class _PaymentModalState extends State<PaymentModal> {
           tile('cash', 'Cash at studio', 'Pay at the studio on the day',
               Icons.payments),
           const SizedBox(height: 8),
-          tile('card', 'Bank card', 'Visa / Mastercard', Icons.credit_card),
+          tile('card', 'Bank card', 'Not available yet', Icons.credit_card),
           const SizedBox(height: 8),
-          tile('mobile', 'Mobile wallet', 'D17 / Flouci / ...',
+          tile('mobile', 'Mobile wallet', 'Not available yet',
               Icons.phone_android),
           const SizedBox(height: 16),
           FlexPrimaryButton(

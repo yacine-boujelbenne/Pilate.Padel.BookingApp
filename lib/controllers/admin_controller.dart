@@ -128,8 +128,10 @@ class AdminController extends ChangeNotifier {
         final fallback = await _client.from('profiles').select().limit(1000);
         coaches = (fallback as List)
             .cast<Map<String, dynamic>>()
-            .where((row) =>
-                (row['role'] as String?)?.toLowerCase().trim() == 'coach')
+            .where(
+              (row) =>
+                  (row['role'] as String?)?.toLowerCase().trim() == 'coach',
+            )
             .toList();
       }
       _coaches = coaches;
@@ -156,8 +158,7 @@ class AdminController extends ChangeNotifier {
 
   Future<void> approvePayment(String bookingId) async {
     await _client
-        .from('bookings')
-        .update({'payment_status': 'paid'}).eq('id', bookingId);
+        .rpc('record_cash_payment', params: {'target_booking_id': bookingId});
     await fetchPendingValidations();
   }
 

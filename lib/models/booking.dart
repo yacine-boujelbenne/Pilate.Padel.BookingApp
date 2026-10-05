@@ -1,3 +1,5 @@
+import 'session_model.dart';
+
 class Booking {
   final String id;
   final String memberId;
@@ -8,6 +10,8 @@ class Booking {
   final DateTime bookedAt;
   final DateTime? cancelledAt;
   final String status;
+  final SessionModel? session;
+  final double? quotedAmountTnd;
 
   const Booking({
     required this.id,
@@ -19,7 +23,19 @@ class Booking {
     required this.bookedAt,
     required this.status,
     this.cancelledAt,
+    this.session,
+    this.quotedAmountTnd,
   });
+
+  double get amountDueTnd =>
+      ((quotedAmountTnd ?? session?.priceTnd ?? 0) - paidAmountTnd)
+          .clamp(0, double.infinity)
+          .toDouble();
+  bool get isUpcoming =>
+      status == 'confirmed' &&
+      session != null &&
+      session!.status == 'scheduled' &&
+      session!.startAt.isAfter(DateTime.now());
 
   factory Booking.fromMap(Map<String, dynamic> map) {
     return Booking(
@@ -34,6 +50,12 @@ class Booking {
           ? DateTime.parse(map['cancelled_at'] as String)
           : null,
       status: (map['status'] as String?) ?? 'confirmed',
+      quotedAmountTnd: (map['quoted_amount_tnd'] as num?)?.toDouble(),
+      session: map['sessions'] is Map
+          ? SessionModel.fromMap(
+              Map<String, dynamic>.from(map['sessions'] as Map),
+            )
+          : null,
     );
   }
 }

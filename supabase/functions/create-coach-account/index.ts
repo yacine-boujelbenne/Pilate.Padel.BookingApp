@@ -19,7 +19,7 @@ function generatePassword(length = 12) {
         "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
     let password = "";
     for (let i = 0; i < length; i += 1) {
-        password += chars[Math.floor(Math.random() * chars.length)];
+        password += chars[crypto.getRandomValues(new Uint32Array(1))[0] % chars.length];
     }
     return password;
 }
@@ -70,11 +70,11 @@ serve(async (req) => {
 
         const { data: profileData, error: profileError } = await adminClient
             .from("profiles")
-            .select("role")
+            .select("role,is_blocked")
             .eq("id", userData.user.id)
             .maybeSingle();
 
-        if (profileError || profileData?.role != "admin") {
+        if (profileError || profileData?.role != "admin" || profileData?.is_blocked) {
             return jsonResponse({ error: "Forbidden" }, 403);
         }
 

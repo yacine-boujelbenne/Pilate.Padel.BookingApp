@@ -64,7 +64,8 @@ class SuccessScreen extends StatelessWidget {
                     Text(coachStudio, style: AppTextStyles.sessionMeta),
                     const SizedBox(height: 6),
                     Text('Payment: $method', style: AppTextStyles.body),
-                    Text('Total paid: ${amount.toStringAsFixed(0)} TND',
+                    Text(
+                        '${isCash ? 'Due at studio' : 'Total paid'}: ${amount.toStringAsFixed(2)} TND',
                         style: AppTextStyles.body
                             .copyWith(fontWeight: FontWeight.w700)),
                   ],

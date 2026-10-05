@@ -89,7 +89,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                   children: [
                     ChipBadge(
                       text:
-                          '${_capitalize((user['member_tier'] as String?) ?? 'standard')}',
+                          _capitalize((user['member_tier'] as String?) ?? 'standard'),
                       variant: ChipBadgeVariant.amber,
                     ),
                     const SizedBox(width: 8),

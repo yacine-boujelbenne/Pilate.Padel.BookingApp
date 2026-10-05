@@ -7,6 +7,7 @@ import '../services/supabase_service.dart';
 class WaitlistController extends ChangeNotifier {
   final _client = SupabaseService.instance.client;
 
+  bool _disposed = false;
   List<WaitlistEntry> _entries = [];
   bool _loading = false;
   String? _error;
@@ -21,27 +22,29 @@ class WaitlistController extends ChangeNotifier {
       ..onPostgresChanges(
         event: PostgresChangeEvent.all,
         schema: 'public',
-        table: 'sessions',
+        table: 'waitlists',
         callback: (_) => fetchMemberWaitlists(),
       )
       ..subscribe();
   }
 
-  Future<void> joinWaitlist(
-      {required String sessionId, required String notifyChannel}) async {
+  Future<void> joinWaitlist({
+    required String sessionId,
+    required String notifyChannel,
+  }) async {
     _setLoading(true);
     try {
       final uid = _client.auth.currentUser?.id;
       if (uid == null) {
         throw Exception('Not authenticated');
       }
-      final position = await getPosition(sessionId);
-      await _client.from('waitlists').insert({
-        'member_id': uid,
-        'session_id': sessionId,
-        'notify_channel': notifyChannel,
-        'position': position,
-      });
+      await _client.rpc(
+        'join_session_waitlist',
+        params: {
+          'target_session_id': sessionId,
+          'preferred_channel': notifyChannel,
+        },
+      );
       _error = null;
       await fetchMemberWaitlists();
     } catch (e) {
@@ -54,7 +57,10 @@ class WaitlistController extends ChangeNotifier {
   Future<void> leaveWaitlist(String entryId) async {
     _setLoading(true);
     try {
-      await _client.from('waitlists').delete().eq('id', entryId);
+      await _client.rpc(
+        'leave_session_waitlist',
+        params: {'target_entry_id': entryId},
+      );
       _error = null;
       await fetchMemberWaitlists();
     } catch (e) {
@@ -99,17 +105,21 @@ class WaitlistController extends ChangeNotifier {
   }
 
   Future<void> notifyNextInLine(String sessionId) async {
-    await _client.functions
-        .invoke('notify-waitlist', body: {'session_id': sessionId});
+    await _client.functions.invoke(
+      'notify-waitlist',
+      body: {'session_id': sessionId},
+    );
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _channel?.unsubscribe();
     super.dispose();
   }
 
   void _setLoading(bool value) {
+    if (_disposed) return;
     _loading = value;
     notifyListeners();
   }
