@@ -160,8 +160,7 @@ class _ReservationSheetState extends State<ReservationSheet> {
                 'Card and wallet payments are not available yet.',
                 style: AppTextStyles.sessionMeta,
               ),
-              AnimatedSize(
-                duration: FlexMotion.duration(context, FlexMotion.standard),
+              _ErrorTransition(
                 child: _error == null
                     ? const SizedBox.shrink()
                     : Padding(
@@ -202,4 +201,16 @@ class _ReservationSheetState extends State<ReservationSheet> {
       ),
     );
   }
+}
+
+/// A zero-duration AnimatedSize can dirty layout in the current Flutter engine.
+/// Reduced motion bypasses the animated render object entirely.
+class _ErrorTransition extends StatelessWidget {
+  final Widget child;
+  const _ErrorTransition({required this.child});
+  @override
+  Widget build(BuildContext context) => FlexMotion.reduced(context)
+      ? child
+      : AnimatedSize(
+          duration: FlexMotion.standard, curve: FlexMotion.curve, child: child);
 }

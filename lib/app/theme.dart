@@ -6,13 +6,13 @@ class AppColors {
   static const peach = Color(0xFFF0C6AE);
   static const border = Color(0xFFE4E8E0);
   static const mint = Color(0xFFF6F5EF);
-  static const sage = Color(0xFF7A9082);
+  static const sage = Color(0xFF5D7567);
   static const sageDark = Color(0xFF173F35);
   static const sageLight = Color(0xFFA8BDB2);
   static const sagePale = Color(0xFFD4E4DA);
   static const textDark = Color(0xFF173F35);
   static const textMid = Color(0xFF4E6057);
-  static const textLight = Color(0xFF7A9082);
+  static const textLight = Color(0xFF5D7567);
   static const white = Color(0xFFFFFFFF);
   static const amberLight = Color(0xFFFDF0DC);
   static const amberDark = Color(0xFF8A5C0E);
