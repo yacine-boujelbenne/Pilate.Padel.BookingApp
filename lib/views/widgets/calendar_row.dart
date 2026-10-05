@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../app/theme.dart';
+import '../../core/motion/flex_motion.dart';
 
 class CalendarRow extends StatelessWidget {
   final DateTime selectedDate;
@@ -18,7 +19,7 @@ class CalendarRow extends StatelessWidget {
     final now = DateTime.now();
     final days = List<DateTime>.generate(7, (i) => now.add(Duration(days: i)));
     return SizedBox(
-      height: 72,
+      height: 96,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: days.length,
@@ -28,34 +29,42 @@ class CalendarRow extends StatelessWidget {
           final active = DateUtils.isSameDay(day, selectedDate);
           return InkWell(
             onTap: () => onSelected(day),
-            borderRadius: BorderRadius.circular(14),
-            child: Container(
-              width: 60,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: active ? AppColors.sageDark : AppColors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                    color: active ? AppColors.sageDark : AppColors.sagePale),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    DateFormat('EEE').format(day).toUpperCase(),
-                    style: AppTextStyles.chip.copyWith(
-                      color: active ? AppColors.white : AppColors.sage,
-                    ),
+            borderRadius: BorderRadius.circular(20),
+            child: Semantics(
+              selected: active,
+              button: true,
+              label: DateFormat('EEEE d MMMM').format(day),
+              child: AnimatedContainer(
+                duration: FlexMotion.duration(context, FlexMotion.standard),
+                curve: FlexMotion.curve,
+                width: 64,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: active ? AppColors.sageDark : AppColors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: active ? AppColors.sageDark : AppColors.sagePale,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    DateFormat('d').format(day),
-                    style: AppTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: active ? AppColors.white : AppColors.sageDark,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      DateFormat('EEE').format(day).toUpperCase(),
+                      style: AppTextStyles.chip.copyWith(
+                        color: active ? AppColors.white : AppColors.sage,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      DateFormat('d').format(day),
+                      style: AppTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: active ? AppColors.white : AppColors.sageDark,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );

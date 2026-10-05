@@ -58,5 +58,12 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true
+  fonts:
+    - family: FlexSans
+      fonts:
+        - asset: assets/fonts/FlexSans.ttf
+    - family: FlexSerif
+      fonts:
+        - asset: assets/fonts/FlexSerif.ttf
   assets:
     - .env

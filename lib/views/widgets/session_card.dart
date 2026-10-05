@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import '../../app/theme.dart';
 import '../../models/session_model.dart';
 import 'buttons.dart';
-import 'full_session_banner.dart';
 import 'spots_bar.dart';
 
 class SessionCard extends StatelessWidget {
@@ -13,7 +11,6 @@ class SessionCard extends StatelessWidget {
   final VoidCallback onWaitlist;
   final bool isBooked;
   final bool onWaitlistList;
-
   const SessionCard({
     super.key,
     required this.session,
@@ -25,135 +22,103 @@ class SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final start = DateFormat('HH:mm').format(session.startAt);
-    final end = DateFormat('HH:mm').format(session.endAt);
-
+    final start = session.startAt.toLocal();
+    final duration = session.endAt.difference(session.startAt).inMinutes;
+    final expired = !session.startAt.isAfter(DateTime.now());
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 48,
-                height: 48,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.mint,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                        DateFormat('EEE').format(session.startAt).toUpperCase(),
-                        style:
-                            AppTextStyles.chip.copyWith(color: AppColors.sage)),
-                    Text(DateFormat('d').format(session.startAt),
-                        style: AppTextStyles.screenTitle.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sageDark)),
-                  ],
+                child: Text(
+                  DateFormat('HH:mm').format(start),
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '$duration min · ${session.level == 'all' ? 'All levels' : session.level}',
+                  style: AppTextStyles.sessionMeta,
+                ),
+              ),
+              if (isBooked)
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.greenDark,
+                  size: 22,
+                ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Text(
+            session.title,
+            style: AppTextStyles.modalTitle.copyWith(fontSize: 23),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${session.coachName} · ${session.studioName}',
+            style: AppTextStyles.sessionMeta,
+          ),
+          const SizedBox(height: 20),
+          SpotsBar(booked: session.bookedCount, max: session.maxParticipants),
+          const SizedBox(height: 20),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(session.title,
-                        style: AppTextStyles.sessionTitle,
-                        overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4),
                     Text(
-                        '$start - $end · Coach ${session.coachName} · Studio ${session.studioName}',
-                        style: AppTextStyles.sessionMeta),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.mint,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.sagePale),
+                      '${session.priceTnd.toStringAsFixed(2)} TND',
+                      style: AppTextStyles.body.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
                       ),
-                      child: Text(
-                          '${session.priceTnd.toStringAsFixed(0)} TND / session',
-                          style: AppTextStyles.priceTag),
                     ),
+                    Text('per person', style: AppTextStyles.sessionMeta),
                   ],
                 ),
               ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: isBooked
+                    ? FlexSecondaryButton(label: 'Reserved', onPressed: null)
+                    : expired
+                        ? FlexSecondaryButton(label: 'Started', onPressed: null)
+                        : session.isFull
+                            ? FlexSecondaryButton(
+                                label: onWaitlistList
+                                    ? 'On waitlist'
+                                    : 'Join waitlist',
+                                onPressed: onWaitlistList ? null : onWaitlist,
+                              )
+                            : FlexPrimaryButton(
+                                label: 'Book session',
+                                onPressed: onBook,
+                              ),
+              ),
             ],
           ),
-          const SizedBox(height: 10),
-          SpotsBar(booked: session.bookedCount, max: session.maxParticipants),
-          if (session.isFull) ...[
-            const SizedBox(height: 8),
-            const FullSessionBanner(),
-          ],
-          const SizedBox(height: 10),
-          if (isBooked)
-            Row(
-              children: [
-                Expanded(
-                    child: FlexSecondaryButton(
-                        label: 'Booked ✓', onPressed: null)),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.redLight,
-                    foregroundColor: AppColors.redDark,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: const Text('Cancel'),
-                ),
-              ],
-            )
-          else if (session.isFull)
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: onWaitlist,
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: onWaitlistList
-                      ? AppColors.sagePale
-                      : AppColors.waitlistAmber,
-                  side: const BorderSide(color: AppColors.waitlistBorder),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                ),
-                child: Text(
-                  onWaitlistList ? '✓ On waitlist' : '🔔 Notify me',
-                  style: AppTextStyles.buttonSecondary
-                      .copyWith(color: AppColors.amberDark, fontSize: 13),
-                ),
-              ),
-            )
-          else
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: onBook,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.sageDark,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                ),
-                child: Text('Book',
-                    style: AppTextStyles.buttonPrimary.copyWith(fontSize: 13)),
-              ),
-            ),
         ],
       ),
     );

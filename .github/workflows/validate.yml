@@ -1,0 +1,54 @@
+name: Validate booking experience
+on:
+  pull_request:
+  push:
+    branches: [main, feat/fluid-booking-experience]
+permissions:
+  contents: read
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: touch .env
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      - run: flutter build web --release -t lib/preview.dart
+      - uses: actions/upload-artifact@v4
+        with:
+          name: design-preview-web
+          path: build/web
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: booking_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: test-only
+      PGDATABASE: booking_test
+    steps:
+      - uses: actions/checkout@v4
+      - run: psql -v ON_ERROR_STOP=1 -f test/database/mock_auth.sql
+      - name: Apply migrations
+        run: |
+          for migration in supabase/migrations/*.sql; do
+            psql -v ON_ERROR_STOP=1 -f "$migration"
+          done
+      - run: psql -v ON_ERROR_STOP=1 -f test/database/reservation_security.sql

@@ -64,8 +64,9 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     return AppBar(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.mint,
       elevation: 0,
+      surfaceTintColor: Colors.transparent,
       centerTitle: true,
       leading: showBack
           ? Padding(
@@ -78,8 +79,11 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
                     color: AppColors.mint,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.arrow_back,
-                      size: 20, color: AppColors.sageDark),
+                  child: const Icon(
+                    Icons.arrow_back,
+                    size: 20,
+                    color: AppColors.sageDark,
+                  ),
                 ),
               ),
             )

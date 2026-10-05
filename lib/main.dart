@@ -42,7 +42,8 @@ Future<void> main() async {
   });
 
   runApp(
-      FlexPilatesApp(authController: authController, router: appRouter.router));
+    FlexPilatesApp(authController: authController, router: appRouter.router),
+  );
 }
 
 class FlexPilatesApp extends StatelessWidget {
@@ -57,21 +58,26 @@ class FlexPilatesApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AuthController>.value(value: authController),
-        ChangeNotifierProvider(create: (_) => SessionController()),
-        ChangeNotifierProvider(create: (_) => BookingController()),
-        ChangeNotifierProvider(create: (_) => WaitlistController()),
-        ChangeNotifierProvider(create: (_) => AdminController()),
-        ChangeNotifierProvider(create: (_) => CoachController()),
-        ChangeNotifierProvider(create: (_) => SettingsController()),
-      ],
-      child: MaterialApp.router(
-        title: 'Fléx Pilates Studio',
-        debugShowCheckedModeBanner: false,
-        theme: buildAppTheme(),
-        routerConfig: router,
+    return ChangeNotifierProvider<AuthController>.value(
+      value: authController,
+      child: Consumer<AuthController>(
+        builder: (context, auth, _) => MultiProvider(
+          key: ValueKey(auth.user?.id),
+          providers: [
+            ChangeNotifierProvider(create: (_) => SessionController()),
+            ChangeNotifierProvider(create: (_) => BookingController()),
+            ChangeNotifierProvider(create: (_) => WaitlistController()),
+            ChangeNotifierProvider(create: (_) => AdminController()),
+            ChangeNotifierProvider(create: (_) => CoachController()),
+            ChangeNotifierProvider(create: (_) => SettingsController()),
+          ],
+          child: MaterialApp.router(
+            title: 'Fléx Pilates Studio',
+            debugShowCheckedModeBanner: false,
+            theme: buildAppTheme(),
+            routerConfig: router,
+          ),
+        ),
       ),
     );
   }

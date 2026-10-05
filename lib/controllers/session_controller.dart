@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../models/session_model.dart';
-import '../services/session_notification_service.dart';
 import '../services/supabase_service.dart';
 
 class SessionController extends ChangeNotifier {
   final _client = SupabaseService.instance.client;
 
+  int _fetchGeneration = 0;
+  bool _disposed = false;
+  DateTime? loadedDate;
   bool _loading = false;
   String? _error;
   List<SessionModel> _sessions = [];
@@ -19,40 +20,36 @@ class SessionController extends ChangeNotifier {
   List<Map<String, dynamic>> get editRequests => _editRequests;
 
   Future<void> fetchSessionsByDate(DateTime date) async {
+    final generation = ++_fetchGeneration;
     _setLoading(true);
     try {
-      final dayStart = DateFormat('yyyy-MM-dd').format(date);
-      final dayEnd =
-          DateFormat('yyyy-MM-dd').format(date.add(const Duration(days: 1)));
+      final localStart = DateTime(date.year, date.month, date.day);
+      final localEnd = DateTime(date.year, date.month, date.day + 1);
       final res = await _client
           .from('sessions')
-          .select()
-          .gte('start_at', dayStart)
-          .lt('start_at', dayEnd)
+          .select('*, profiles!coach_id(first_name,last_name), studios(name)')
+          .eq('status', 'scheduled')
+          .gte('start_at', localStart.toUtc().toIso8601String())
+          .lt('start_at', localEnd.toUtc().toIso8601String())
           .order('start_at');
-
-      // Filter for scheduled status with case-insensitive comparison
-      _sessions = (res as List)
-          .where((e) =>
-              (e as Map<String, dynamic>)['status']
-                  .toString()
-                  .toLowerCase()
-                  .trim() ==
-              'scheduled')
-          .map((e) => SessionModel.fromMap(e as Map<String, dynamic>))
-          .toList();
+      if (generation != _fetchGeneration) return;
+      _sessions = res.map((row) => SessionModel.fromMap(row)).toList();
+      loadedDate = date;
       _error = null;
     } catch (e) {
-      _error = e.toString();
+      if (generation == _fetchGeneration) _error = e.toString();
     } finally {
-      _setLoading(false);
+      if (generation == _fetchGeneration) _setLoading(false);
     }
   }
 
   Future<void> fetchAllSessions() async {
     _setLoading(true);
     try {
-      final res = await _client.from('sessions').select().order('start_at');
+      final res = await _client
+          .from('sessions')
+          .select('*, profiles!coach_id(first_name,last_name), studios(name)')
+          .order('start_at');
       _sessions = (res as List)
           .map((e) => SessionModel.fromMap(e as Map<String, dynamic>))
           .toList();
@@ -74,12 +71,14 @@ class SessionController extends ChangeNotifier {
 
       // Filter for pending status with case-insensitive comparison
       _editRequests = (res as List)
-          .where((e) =>
-              (e as Map<String, dynamic>)['status']
-                  .toString()
-                  .toLowerCase()
-                  .trim() ==
-              'pending')
+          .where(
+            (e) =>
+                (e as Map<String, dynamic>)['status']
+                    .toString()
+                    .toLowerCase()
+                    .trim() ==
+                'pending',
+          )
           .cast<Map<String, dynamic>>()
           .toList();
       _error = null;
@@ -129,39 +128,12 @@ class SessionController extends ChangeNotifier {
   Future<void> approveEditRequest(Map<String, dynamic> request) async {
     _setLoading(true);
     try {
-      final sessionId = request['session_id'] as String?;
       final requestId = request['id'] as String?;
-      if (sessionId == null || requestId == null) {
-        throw Exception('Invalid edit request');
-      }
-
-      final updates = <String, dynamic>{};
-      if (request['proposed_title'] != null) {
-        updates['title'] = request['proposed_title'];
-      }
-      if (request['proposed_start_at'] != null) {
-        updates['start_at'] = request['proposed_start_at'];
-      }
-      if (request['proposed_end_at'] != null) {
-        updates['end_at'] = request['proposed_end_at'];
-      }
-      if (request['proposed_max_participants'] != null) {
-        updates['max_participants'] = request['proposed_max_participants'];
-      }
-      if (request['proposed_price_tnd'] != null) {
-        updates['price_tnd'] = request['proposed_price_tnd'];
-      }
-      if (request['proposed_level'] != null) {
-        updates['level'] = request['proposed_level'];
-      }
-
-      if (updates.isNotEmpty) {
-        await _client.from('sessions').update(updates).eq('id', sessionId);
-      }
-
-      await _client
-          .from('session_edit_requests')
-          .update({'status': 'approved'}).eq('id', requestId);
+      if (requestId == null) throw Exception('Invalid edit request');
+      await _client.rpc(
+        'approve_session_edit',
+        params: {'target_request_id': requestId},
+      );
 
       _error = null;
       await fetchAllSessions();
@@ -205,35 +177,7 @@ class SessionController extends ChangeNotifier {
   }
 
   Future<void> cancelSession(String id) async {
-    // Find the session to get its title for the notification
-    final session = _sessions.firstWhere(
-      (s) => s.id == id,
-      orElse: () => SessionModel(
-        id: id,
-        coachName: 'Coach',
-        studioName: 'Studio',
-        title: 'Session',
-        level: 'all',
-        startAt: DateTime.now(),
-        endAt: DateTime.now(),
-        maxParticipants: 0,
-        bookedCount: 0,
-        priceTnd: 0,
-        status: 'scheduled',
-      ),
-    );
-
-    // Notify all enrolled members before cancelling
-    try {
-      await SessionNotificationService().notifySessionCancelled(
-        sessionId: id,
-        sessionTitle: session.title,
-      );
-    } catch (e) {
-      debugPrint('Failed to notify members of session cancellation: $e');
-      // Continue with cancellation even if notification fails
-    }
-
+    // The database emits notifications atomically with the status update.
     await updateSession(id, {'status': 'cancelled'});
   }
 
@@ -241,7 +185,15 @@ class SessionController extends ChangeNotifier {
     await updateSession(id, {'status': 'scheduled'});
   }
 
+  @override
+  void dispose() {
+    _disposed = true;
+    _fetchGeneration++;
+    super.dispose();
+  }
+
   void _setLoading(bool value) {
+    if (_disposed) return;
     _loading = value;
     notifyListeners();
   }

@@ -205,7 +205,7 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                       'proposed_level': level,
                     },
                   );
-                  if (!mounted) return;
+                  if (!mounted || !dialogContext.mounted) return;
                   Navigator.of(dialogContext).pop();
                   ToastMessage.show(context, 'Edit request sent');
                 } catch (_) {

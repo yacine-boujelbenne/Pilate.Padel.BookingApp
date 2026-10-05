@@ -25,6 +25,9 @@ class AuthController extends ChangeNotifier {
     return 'https://fxpbjztsyucdujwgrhji.supabase.co/functions/v1/auth-confirm';
   }
 
+  StreamSubscription<AuthState>? _authSubscription;
+  int _profileGeneration = 0;
+
   User? _user;
   Profile? _profile;
   bool _profileLoaded = false;
@@ -40,7 +43,8 @@ class AuthController extends ChangeNotifier {
 
   void listenAuthState() {
     _user = _client.auth.currentUser;
-    _client.auth.onAuthStateChange.listen((data) async {
+    _authSubscription?.cancel();
+    _authSubscription = _client.auth.onAuthStateChange.listen((data) async {
       final event = data.event;
       _user = data.session?.user;
       _profileLoaded = false;
@@ -48,7 +52,12 @@ class AuthController extends ChangeNotifier {
         _passwordRecoveryController.add(null);
       } else {
         if (_user != null) {
-          await getCurrentProfile();
+          try {
+            await getCurrentProfile();
+          } catch (error) {
+            _error = error.toString();
+            _profileLoaded = true;
+          }
         } else {
           _profile = null;
           _profileLoaded = true;
@@ -120,14 +129,16 @@ class AuthController extends ChangeNotifier {
   }) async {
     _setLoading(true);
     try {
-      final response =
-          await _client.functions.invoke('create-coach-account', body: {
-        'first_name': firstName,
-        'last_name': lastName,
-        'email': email,
-        'phone': phone,
-        'speciality': speciality,
-      });
+      final response = await _client.functions.invoke(
+        'create-coach-account',
+        body: {
+          'first_name': firstName,
+          'last_name': lastName,
+          'email': email,
+          'phone': phone,
+          'speciality': speciality,
+        },
+      );
       _error = null;
       final data = response.data;
       if (data is Map && data['temp_password'] is String) {
@@ -143,6 +154,7 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> getCurrentProfile() async {
+    final generation = ++_profileGeneration;
     final uid = _client.auth.currentUser?.id;
     if (uid == null) {
       _profile = null;
@@ -152,9 +164,12 @@ class AuthController extends ChangeNotifier {
     }
     final data =
         await _client.from('profiles').select().eq('id', uid).maybeSingle();
+    if (generation != _profileGeneration || uid != _client.auth.currentUser?.id) {
+      return;
+    }
     if (data == null) {
       final metadata = _client.auth.currentUser?.userMetadata ?? {};
-      final role = (metadata['role'] as String?) ?? 'member';
+      const role = 'member';
       final firstName = (metadata['first_name'] as String?) ?? 'Member';
       final lastName = (metadata['last_name'] as String?) ?? '';
 
@@ -165,14 +180,22 @@ class AuthController extends ChangeNotifier {
         'last_name': lastName,
         'phone': metadata['phone'] as String?,
         'speciality': metadata['speciality'] as String?,
-        'member_tier': (metadata['member_tier'] as String?) ?? 'standard',
+        'member_tier': 'standard',
       });
 
       final created =
           await _client.from('profiles').select().eq('id', uid).maybeSingle();
+      if (generation != _profileGeneration ||
+          uid != _client.auth.currentUser?.id) {
+        return;
+      }
       _profile = created == null ? null : Profile.fromMap(created);
     } else {
       _profile = Profile.fromMap(data);
+    }
+    if (_profile?.isBlocked == true) {
+      await signOut();
+      throw Exception('Your account has been suspended');
     }
     _profileLoaded = true;
     notifyListeners();
@@ -197,9 +220,7 @@ class AuthController extends ChangeNotifier {
   Future<void> updatePassword({required String newPassword}) async {
     _setLoading(true);
     try {
-      await _client.auth.updateUser(
-        UserAttributes(password: newPassword),
-      );
+      await _client.auth.updateUser(UserAttributes(password: newPassword));
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -210,6 +231,7 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    _profileGeneration++;
     await _client.auth.signOut();
     _user = null;
     _profile = null;
@@ -228,15 +250,12 @@ class AuthController extends ChangeNotifier {
         throw Exception('Not authenticated');
       }
 
-      await _client.from('profiles').update({
-        'first_name': firstName,
-        'last_name': lastName,
-      }).eq('id', uid);
+      await _client.from('profiles').update(
+          {'first_name': firstName, 'last_name': lastName}).eq('id', uid);
 
-      await _client.auth.updateUser(UserAttributes(data: {
-        'first_name': firstName,
-        'last_name': lastName,
-      }));
+      await _client.auth.updateUser(
+        UserAttributes(data: {'first_name': firstName, 'last_name': lastName}),
+      );
 
       await getCurrentProfile();
       _error = null;
@@ -246,6 +265,13 @@ class AuthController extends ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    _passwordRecoveryController.close();
+    super.dispose();
   }
 
   void _setLoading(bool value) {

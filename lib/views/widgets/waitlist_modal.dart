@@ -5,7 +5,7 @@ import 'buttons.dart';
 
 class WaitlistModal extends StatefulWidget {
   final String sessionName;
-  final int position;
+  final int? position;
   final ValueChanged<String> onJoin;
 
   const WaitlistModal({
@@ -35,7 +35,8 @@ class _WaitlistModalState extends State<WaitlistModal> {
             color: selected ? AppColors.mint : AppColors.white,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-                color: selected ? AppColors.sageDark : AppColors.sagePale),
+              color: selected ? AppColors.sageDark : AppColors.sagePale,
+            ),
           ),
           child: Row(
             children: [
@@ -61,7 +62,7 @@ class _WaitlistModalState extends State<WaitlistModal> {
           Text(widget.sessionName, style: AppTextStyles.modalTitle),
           const SizedBox(height: 6),
           Text(
-            "This session is full. Join the waitlist and we'll notify you the moment a spot opens.",
+            "Join the queue. Your position is assigned when you join; check the app for updates.",
             style: AppTextStyles.sessionMeta.copyWith(color: AppColors.textMid),
           ),
           const SizedBox(height: 12),
@@ -70,11 +71,17 @@ class _WaitlistModalState extends State<WaitlistModal> {
               width: 44,
               height: 44,
               decoration: const BoxDecoration(
-                  shape: BoxShape.circle, color: AppColors.sageDark),
+                shape: BoxShape.circle,
+                color: AppColors.sageDark,
+              ),
               alignment: Alignment.center,
-              child: Text('#${widget.position}',
-                  style: AppTextStyles.body.copyWith(
-                      color: AppColors.white, fontWeight: FontWeight.bold)),
+              child: Text(
+                widget.position == null ? '+' : '#${widget.position}',
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -85,8 +92,9 @@ class _WaitlistModalState extends State<WaitlistModal> {
           option('email', 'Email', Icons.email),
           const SizedBox(height: 16),
           FlexPrimaryButton(
-              label: 'Join waitlist & enable alerts',
-              onPressed: () => widget.onJoin(_channel)),
+            label: 'Join waitlist',
+            onPressed: () => widget.onJoin(_channel),
+          ),
         ],
       ),
     );

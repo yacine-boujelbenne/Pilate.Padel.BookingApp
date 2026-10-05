@@ -9,7 +9,6 @@ import '../../widgets/avatar_widget.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/chip_badge.dart';
 import '../../widgets/flex_app_bar.dart';
-import '../../widgets/flex_bottom_nav.dart';
 import '../../widgets/stat_card.dart';
 
 String _capitalize(String value) {
@@ -37,21 +36,6 @@ class MemberProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: const FlexAppBar(title: 'Profile', badgeText: 'Member'),
-      bottomNavigationBar: FlexBottomNav(
-        currentIndex: 3,
-        onTap: (index) {
-          if (index == 0) context.go('/member/home');
-          if (index == 1) context.go('/member/explore');
-          if (index == 2) context.go('/member/bookings');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'HOME'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'EXPLORE'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month), label: 'MY BOOKINGS'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'PROFILE'),
-        ],
-      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -67,13 +51,16 @@ class MemberProfileScreen extends StatelessWidget {
           Center(
             child: Text(
               profile?.fullName ?? 'Member',
-              style: AppTextStyles.modalTitle
-                  .copyWith(fontWeight: FontWeight.bold),
+              style: AppTextStyles.modalTitle.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           Center(
-            child:
-                Text(auth.user?.email ?? '', style: AppTextStyles.sessionMeta),
+            child: Text(
+              auth.user?.email ?? '',
+              style: AppTextStyles.sessionMeta,
+            ),
           ),
           const SizedBox(height: 6),
           Center(
