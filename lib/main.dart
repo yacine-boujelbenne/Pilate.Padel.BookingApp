@@ -1,5 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -18,8 +20,20 @@ import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LicenseRegistry.addLicense(() async* {
+    for (final file in [
+      'assets/animations/LICENSE.txt',
+      'assets/images/CREDITS.txt',
+      'assets/fonts/Manrope-OFL.txt',
+      'assets/fonts/Inter-OFL.txt',
+    ]) {
+      yield LicenseEntryWithLineBreaks([
+        'Fléx visual assets',
+      ], await rootBundle.loadString(file));
+    }
+  });
 
-  await dotenv.load(fileName: '.env');
+  await dotenv.load(fileName: '.env.client');
 
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL'] ?? '',
@@ -42,7 +56,8 @@ Future<void> main() async {
   });
 
   runApp(
-      FlexPilatesApp(authController: authController, router: appRouter.router));
+    FlexPilatesApp(authController: authController, router: appRouter.router),
+  );
 }
 
 class FlexPilatesApp extends StatelessWidget {
@@ -57,21 +72,26 @@ class FlexPilatesApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AuthController>.value(value: authController),
-        ChangeNotifierProvider(create: (_) => SessionController()),
-        ChangeNotifierProvider(create: (_) => BookingController()),
-        ChangeNotifierProvider(create: (_) => WaitlistController()),
-        ChangeNotifierProvider(create: (_) => AdminController()),
-        ChangeNotifierProvider(create: (_) => CoachController()),
-        ChangeNotifierProvider(create: (_) => SettingsController()),
-      ],
-      child: MaterialApp.router(
-        title: 'Fléx Pilates Studio',
-        debugShowCheckedModeBanner: false,
-        theme: buildAppTheme(),
-        routerConfig: router,
+    return ListenableBuilder(
+      listenable: authController,
+      builder: (context, child) => MultiProvider(
+        // Dispose role-scoped caches and realtime channels when accounts change.
+        key: ValueKey(authController.user?.id),
+        providers: [
+          ChangeNotifierProvider<AuthController>.value(value: authController),
+          ChangeNotifierProvider(create: (_) => SessionController()),
+          ChangeNotifierProvider(create: (_) => BookingController()),
+          ChangeNotifierProvider(create: (_) => WaitlistController()),
+          ChangeNotifierProvider(create: (_) => AdminController()),
+          ChangeNotifierProvider(create: (_) => CoachController()),
+          ChangeNotifierProvider(create: (_) => SettingsController()),
+        ],
+        child: MaterialApp.router(
+          title: 'Fléx Pilates Studio',
+          debugShowCheckedModeBanner: false,
+          theme: buildAppTheme(),
+          routerConfig: router,
+        ),
       ),
     );
   }

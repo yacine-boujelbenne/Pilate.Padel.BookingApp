@@ -6,6 +6,7 @@ import 'avatar_widget.dart';
 class CoachCard extends StatelessWidget {
   final String name;
   final String speciality;
+  final String? imageUrl;
   final VoidCallback? onEdit;
   final VoidCallback? onTap;
 
@@ -14,6 +15,7 @@ class CoachCard extends StatelessWidget {
     required this.name,
     required this.speciality,
     this.onEdit,
+    this.imageUrl,
     this.onTap,
   });
 
@@ -21,35 +23,45 @@ class CoachCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppRadii.card),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadii.card),
         ),
         child: Row(
           children: [
-            AvatarWidget(initials: name.isNotEmpty ? name[0] : 'C', size: 44),
+            AvatarWidget(
+              initials: name.isNotEmpty ? name[0] : 'C',
+              size: 48,
+              imageUrl: imageUrl,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name,
-                      style: AppTextStyles.body
-                          .copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                    name,
+                    style: AppTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   Text(speciality, style: AppTextStyles.sessionMeta),
                 ],
               ),
             ),
+            if (onTap != null)
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 18,
+                color: AppColors.sageDark,
+              ),
             if (onEdit != null)
               TextButton(
                 onPressed: onEdit,
-                child: Text(
-                  'Edit',
-                  style: AppTextStyles.buttonSecondary,
-                ),
+                child: Text('Edit', style: AppTextStyles.buttonSecondary),
               ),
           ],
         ),

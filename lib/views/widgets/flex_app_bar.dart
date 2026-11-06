@@ -64,22 +64,20 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
 
     return AppBar(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.mint,
       elevation: 0,
-      centerTitle: true,
+      toolbarHeight: 72,
+      centerTitle: false,
       leading: showBack
           ? Padding(
               padding: const EdgeInsets.all(8),
-              child: InkWell(
-                onTap: handleBack,
-                borderRadius: BorderRadius.circular(10),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    color: AppColors.mint,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.arrow_back,
-                      size: 20, color: AppColors.sageDark),
+              child: IconButton(
+                tooltip: 'Back',
+                onPressed: handleBack,
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  size: 22,
+                  color: AppColors.forest,
                 ),
               ),
             )
@@ -90,5 +88,5 @@ class FlexAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(56);
+  Size get preferredSize => const Size.fromHeight(72);
 }

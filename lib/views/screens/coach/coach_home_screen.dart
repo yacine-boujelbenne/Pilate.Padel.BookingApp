@@ -1,3 +1,5 @@
+import '../../widgets/state_widgets.dart';
+import '../../widgets/page_layout.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -53,20 +55,26 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
     final startAt = _parseDate(session['start_at']);
     final endAt = _parseDate(session['end_at']);
 
-    final titleController =
-        TextEditingController(text: (session['title'] as String?) ?? '');
-    final dateController =
-        TextEditingController(text: DateFormat('yyyy-MM-dd').format(startAt));
-    final startController =
-        TextEditingController(text: DateFormat('HH:mm').format(startAt));
-    final endController =
-        TextEditingController(text: DateFormat('HH:mm').format(endAt));
+    final titleController = TextEditingController(
+      text: (session['title'] as String?) ?? '',
+    );
+    final dateController = TextEditingController(
+      text: DateFormat('yyyy-MM-dd').format(startAt),
+    );
+    final startController = TextEditingController(
+      text: DateFormat('HH:mm').format(startAt),
+    );
+    final endController = TextEditingController(
+      text: DateFormat('HH:mm').format(endAt),
+    );
     final maxController = TextEditingController(
-        text:
-            ((session['max_participants'] as num?)?.toInt() ?? 10).toString());
+      text: ((session['max_participants'] as num?)?.toInt() ?? 10).toString(),
+    );
     final priceController = TextEditingController(
-        text: ((session['price_tnd'] as num?)?.toDouble() ?? 0)
-            .toStringAsFixed(0));
+      text: ((session['price_tnd'] as num?)?.toDouble() ?? 0).toStringAsFixed(
+        0,
+      ),
+    );
     String level = (session['level'] as String?) ?? 'all';
 
     await showDialog<void>(
@@ -82,46 +90,60 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                   FlexFormInput(controller: titleController, hint: 'Title'),
                   const SizedBox(height: 8),
                   FlexFormInput(
-                      controller: dateController, hint: 'Date (YYYY-MM-DD)'),
+                    controller: dateController,
+                    hint: 'Date (YYYY-MM-DD)',
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
                         child: FlexFormInput(
-                            controller: startController, hint: 'Start (HH:mm)'),
+                          controller: startController,
+                          hint: 'Start (HH:mm)',
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: FlexFormInput(
-                            controller: endController, hint: 'End (HH:mm)'),
+                          controller: endController,
+                          hint: 'End (HH:mm)',
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   FlexFormInput(
-                      controller: maxController,
-                      hint: 'Max participants',
-                      keyboardType: TextInputType.number),
+                    controller: maxController,
+                    hint: 'Max participants',
+                    keyboardType: TextInputType.number,
+                  ),
                   const SizedBox(height: 8),
                   FlexDropdown(
                     value: level,
                     items: const [
                       DropdownMenuItem(value: 'all', child: Text('All levels')),
                       DropdownMenuItem(
-                          value: 'beginner', child: Text('Beginner')),
+                        value: 'beginner',
+                        child: Text('Beginner'),
+                      ),
                       DropdownMenuItem(
-                          value: 'intermediate', child: Text('Intermediate')),
+                        value: 'intermediate',
+                        child: Text('Intermediate'),
+                      ),
                       DropdownMenuItem(
-                          value: 'advanced', child: Text('Advanced')),
+                        value: 'advanced',
+                        child: Text('Advanced'),
+                      ),
                     ],
                     onChanged: (value) =>
                         setState(() => level = value ?? 'all'),
                   ),
                   const SizedBox(height: 8),
                   FlexFormInput(
-                      controller: priceController,
-                      hint: 'Price TND',
-                      keyboardType: TextInputType.number),
+                    controller: priceController,
+                    hint: 'Price TND',
+                    keyboardType: TextInputType.number,
+                  ),
                 ],
               ),
             ),
@@ -133,11 +155,14 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
             ),
             TextButton(
               onPressed: () async {
-                final selectedDate =
-                    DateTime.tryParse(dateController.text.trim());
+                final selectedDate = DateTime.tryParse(
+                  dateController.text.trim(),
+                );
                 if (selectedDate == null) {
                   ToastMessage.show(
-                      context, 'Please enter a valid date (YYYY-MM-DD)');
+                    context,
+                    'Please enter a valid date (YYYY-MM-DD)',
+                  );
                   return;
                 }
 
@@ -145,7 +170,9 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                 final endParts = endController.text.trim().split(':');
                 if (startParts.length != 2 || endParts.length != 2) {
                   ToastMessage.show(
-                      context, 'Please enter valid times (HH:mm)');
+                    context,
+                    'Please enter valid times (HH:mm)',
+                  );
                   return;
                 }
 
@@ -158,7 +185,9 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                     endHour == null ||
                     endMinute == null) {
                   ToastMessage.show(
-                      context, 'Please enter valid times (HH:mm)');
+                    context,
+                    'Please enter valid times (HH:mm)',
+                  );
                   return;
                 }
 
@@ -179,14 +208,18 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
 
                 if (!end.isAfter(start)) {
                   ToastMessage.show(
-                      context, 'End time must be after start time');
+                    context,
+                    'End time must be after start time',
+                  );
                   return;
                 }
 
                 final max = int.tryParse(maxController.text.trim()) ?? 10;
                 if (max <= 0) {
                   ToastMessage.show(
-                      context, 'Max participants must be greater than 0');
+                    context,
+                    'Max participants must be greater than 0',
+                  );
                   return;
                 }
 
@@ -206,11 +239,13 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
                     },
                   );
                   if (!mounted) return;
+                  if (!dialogContext.mounted) return;
                   Navigator.of(dialogContext).pop();
                   ToastMessage.show(context, 'Edit request sent');
                 } catch (_) {
                   if (mounted) {
-                    final error = context.read<SessionController>().error ??
+                    final error =
+                        context.read<SessionController>().error ??
                         'Could not submit edit request';
                     ToastMessage.show(context, error);
                   }
@@ -247,8 +282,8 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
     final initials = profile == null
         ? 'C'
         : '${profile.firstName.isNotEmpty ? profile.firstName[0] : ''}${profile.lastName.isNotEmpty ? profile.lastName[0] : ''}'
-            .trim()
-            .toUpperCase();
+              .trim()
+              .toUpperCase();
 
     return Scaffold(
       appBar: FlexAppBar(
@@ -270,170 +305,217 @@ class _CoachHomeScreenState extends State<CoachHomeScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(16)),
-            child: Row(
-              children: [
-                AvatarWidget(initials: initials, size: 52),
-                SizedBox(width: 10),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(displayName),
-                  Text(speciality)
-                ]),
-              ],
+      body: FlexPage(
+        maxWidth: 1120,
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            const FlexSectionHeader(
+              title: 'A good day to inspire.',
+              subtitle: 'Your sessions, your people, your rhythm.',
             ),
-          ),
-          const SizedBox(height: 12),
-          GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              StatCard(
-                  value: c.sessionsToday.toString(), label: 'Sessions today'),
-              StatCard(value: c.sessionsWeek.toString(), label: 'Sessions week'),
-              StatCard(
-                  value:
-                      '${(c.averageFillRate * 100).clamp(0, 100).toStringAsFixed(0)}%',
-                  label: 'Average fill'),
-              StatCard(
-                  value: c.upcomingSessions.toString(),
-                  label: 'Upcoming'),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text('YOUR SESSIONS', style: AppTextStyles.sectionLabel),
-          const SizedBox(height: 8),
-          if (schedule.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: Text('No sessions yet'),
-            )
-          else
-            ...schedule.map((item) {
-              final startAt = _parseDate(item['start_at']);
-              final endAt = _parseDate(item['end_at']);
-              final status = (item['status'] as String?) ?? 'scheduled';
-              final booked = (item['booked_count'] as num?)?.toInt() ?? 0;
-              final max = (item['max_participants'] as num?)?.toInt() ?? 0;
-              final timeRange =
-                  '${DateFormat('HH:mm').format(startAt)} - ${DateFormat('HH:mm').format(endAt)}';
-              final title = (item['title'] as String?) ?? 'Session';
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(14)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(title, style: AppTextStyles.body),
-                              const SizedBox(height: 2),
-                              Text(timeRange, style: AppTextStyles.sessionMeta),
-                            ],
-                          ),
-                        ),
-                        Text('$booked/$max', style: AppTextStyles.sessionMeta),
-                        const SizedBox(width: 8),
-                        ChipBadge(
-                            text: status, variant: _statusVariant(status)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (booked > 0)
-                          TextButton.icon(
-                            onPressed: () => context.go(
-                              '/sessions/${item['id']}/attendees',
-                              extra: '/coach/home',
-                            ),
-                            icon: const Icon(Icons.people, size: 16),
-                            label: Text('View Attendees ($booked)'),
-                          ),
-                        const SizedBox(width: 8),
-                        if (status == 'scheduled')
-                          TextButton(
-                            onPressed: () => _openEditRequestDialog(item),
-                            child: const Text('Propose edit'),
-                          )
-                        else if (status == 'pending')
-                          Text('Awaiting admin approval',
-                              style: AppTextStyles.sessionMeta),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
-          const SizedBox(height: 12),
-          Text('SESSION FILL RATE BY DAY', style: AppTextStyles.sectionLabel),
-          const SizedBox(height: 8),
-          Container(
-            height: 120,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
+            if (c.isLoading) const LinearProgressIndicator(),
+            if (c.error != null)
+              FlexErrorCard(
+                message: 'Your schedule could not be refreshed.',
+                onRetry: _loadDashboard,
+              ),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
                 color: AppColors.white,
-                borderRadius: BorderRadius.circular(14)),
-            child: BarChart(
-              BarChartData(
-                titlesData: FlTitlesData(
-                  leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, _) {
-                        const labels = ['M', 'T', 'W', 'T', 'F'];
-                        return Text(labels[value.toInt()],
-                            style: AppTextStyles.navLabel
-                                .copyWith(color: AppColors.sage));
-                      },
+                borderRadius: BorderRadius.circular(AppRadii.card),
+              ),
+              child: Row(
+                children: [
+                  AvatarWidget(initials: initials, size: 52),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(displayName, style: AppTextStyles.sessionTitle),
+                        Text(speciality, style: AppTextStyles.sessionMeta),
+                      ],
                     ),
                   ),
-                ),
-                borderData: FlBorderData(show: false),
-                barGroups: List.generate(c.fillRates.length, (i) {
-                  return BarChartGroupData(x: i, barRods: [
-                    BarChartRodData(
-                      toY: c.fillRates[i] * 100,
-                      width: 16,
-                      borderRadius: BorderRadius.circular(4),
-                      color: i == DateTime.now().weekday - 1
-                          ? AppColors.sageDark
-                          : AppColors.sage,
-                    ),
-                  ]);
-                }),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          FlexPrimaryButton(
+            const SizedBox(height: 12),
+            FlexStatsGrid(
+              children: [
+                StatCard(
+                  value: c.sessionsToday.toString(),
+                  label: 'Sessions today',
+                ),
+                StatCard(
+                  value: c.sessionsWeek.toString(),
+                  label: 'Sessions week',
+                ),
+                StatCard(
+                  value:
+                      '${(c.averageFillRate * 100).clamp(0, 100).toStringAsFixed(0)}%',
+                  label: 'Average fill',
+                ),
+                StatCard(
+                  value: c.upcomingSessions.toString(),
+                  label: 'Upcoming',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text('YOUR SESSIONS', style: AppTextStyles.sectionLabel),
+            const SizedBox(height: 8),
+            if (schedule.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(12),
+                child: Text('No sessions yet'),
+              )
+            else
+              ...schedule.map((item) {
+                final startAt = _parseDate(item['start_at']);
+                final endAt = _parseDate(item['end_at']);
+                final status = (item['status'] as String?) ?? 'scheduled';
+                final booked = (item['booked_count'] as num?)?.toInt() ?? 0;
+                final max = (item['max_participants'] as num?)?.toInt() ?? 0;
+                final timeRange =
+                    '${DateFormat('EEE d MMM · HH:mm').format(startAt)}–${DateFormat('HH:mm').format(endAt)}';
+                final title = (item['title'] as String?) ?? 'Session';
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(AppRadii.card),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(title, style: AppTextStyles.body),
+                                const SizedBox(height: 2),
+                                Text(
+                                  timeRange,
+                                  style: AppTextStyles.sessionMeta,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            '$booked/$max',
+                            style: AppTextStyles.sessionMeta,
+                          ),
+                          const SizedBox(width: 8),
+                          ChipBadge(
+                            text: status,
+                            variant: _statusVariant(status),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        alignment: WrapAlignment.end,
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          if (booked > 0)
+                            TextButton.icon(
+                              onPressed: () => context.go(
+                                '/sessions/${item['id']}/attendees',
+                                extra: '/coach/home',
+                              ),
+                              icon: const Icon(Icons.people, size: 16),
+                              label: Text('View Attendees ($booked)'),
+                            ),
+                          const SizedBox(width: 8),
+                          if (status == 'scheduled')
+                            TextButton(
+                              onPressed: () => _openEditRequestDialog(item),
+                              child: const Text('Propose edit'),
+                            )
+                          else if (status == 'pending')
+                            Text(
+                              'Awaiting admin approval',
+                              style: AppTextStyles.sessionMeta,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            const SizedBox(height: 12),
+            Text('SESSION FILL RATE BY DAY', style: AppTextStyles.sectionLabel),
+            const SizedBox(height: 8),
+            Container(
+              height: 120,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(AppRadii.card),
+              ),
+              child: BarChart(
+                BarChartData(
+                  titlesData: FlTitlesData(
+                    leftTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, _) {
+                          const labels = ['M', 'T', 'W', 'T', 'F'];
+                          return Text(
+                            value.toInt() >= 0 && value.toInt() < labels.length
+                                ? labels[value.toInt()]
+                                : '',
+                            style: AppTextStyles.navLabel.copyWith(
+                              color: AppColors.sage,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  barGroups: List.generate(c.fillRates.length, (i) {
+                    return BarChartGroupData(
+                      x: i,
+                      barRods: [
+                        BarChartRodData(
+                          toY: c.fillRates[i] * 100,
+                          width: 16,
+                          borderRadius: BorderRadius.circular(4),
+                          color: i == DateTime.now().weekday - 1
+                              ? AppColors.sageDark
+                              : AppColors.sage,
+                        ),
+                      ],
+                    );
+                  }),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            FlexPrimaryButton(
               label: '+ Create new session',
-              onPressed: () => context.go('/coach/sessions/new')),
-        ],
+              onPressed: () => context.go('/coach/sessions/new'),
+            ),
+          ],
+        ),
       ),
     );
   }

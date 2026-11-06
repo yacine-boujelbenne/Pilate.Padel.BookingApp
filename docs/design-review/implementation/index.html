@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fléx — implemented Flutter screen review</title>
+<style>
+  @font-face{font-family:Manrope;src:url('../assets/manrope.ttf')}@font-face{font-family:Inter;src:url('../assets/inter.ttf')}
+  *{box-sizing:border-box}body{margin:0;background:#ebf3ee;color:#2c3a33;font:15px/1.6 Inter,Arial,sans-serif}main{max-width:1340px;margin:auto;padding:40px 24px}h1,h2{font-family:Manrope,Arial,sans-serif;letter-spacing:-.7px}h1{font-size:38px;margin:0 0 12px}p{max-width:900px;color:#4e6057}button{font:inherit;border:1px solid #a8bdb2;background:#fff;color:#284c3b;padding:12px 20px;border-radius:14px;cursor:pointer}button[aria-pressed=true]{background:#5a6e62;color:white}button:focus-visible{outline:3px solid #284c3b;outline-offset:3px}.controls{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 36px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}article{min-width:0}h2{font-size:20px;margin:0 0 12px}img{width:100%;height:auto;border:1px solid #a8bdb2;border-radius:22px;box-shadow:0 12px 30px #2c3a330d;display:block}.wide .grid{grid-template-columns:1fr}.note{background:#d4e4da;border-radius:16px;padding:16px 20px;font-size:13px}a{color:#284c3b}footer{margin-top:40px;border-top:1px solid #d4e4da;padding-top:20px;font-size:13px;color:#4e6057}@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.grid{grid-template-columns:1fr}h1{font-size:30px}}
+</style>
+<main>
+  <h1>Fléx. Naturally in Motion.</h1>
+  <p>Rendered Flutter screens from the implemented redesign: the original mint/sage identity, bundled typography, shared cards and controls, and clearer reservation and staff journeys.</p>
+  <p class="note"><strong>Review fixtures, not live account data.</strong> These captures use the actual app widgets with illustrative data isolated in <code>test/support/</code>. Production screens continue to use Supabase. Recovery delivery and its callback were verified separately; authenticated booking and role checks remain documented in the implementation report.</p>
+  <div class="controls" aria-label="Viewport selection"><button aria-pressed="true" data-width="390">Phone · 390 px</button><button aria-pressed="false" data-width="1200">Desktop · 1200 px</button></div>
+  <div class="grid">
+    <article><h2>Member Home</h2><img src="home-390.png" data-screen="home" alt="Implemented member Home with upcoming reservation, calendar selection and session cards"></article>
+    <article><h2>My bookings</h2><img src="bookings-390.png" data-screen="bookings" alt="Implemented booking history and reservation cancellation control"></article>
+    <article><h2>My waitlists</h2><img src="waitlists-390.png" data-screen="waitlists" alt="Implemented waitlist showing session details and queue position"></article>
+    <article><h2>Sign in</h2><img src="login-390.png" data-screen="login" alt="Implemented branded sign-in form with visible labels and password visibility control"></article>
+    <article><h2>Coach portal</h2><img src="coach-390.png" data-screen="coach" alt="Implemented coach dashboard with responsive metrics, dated sessions and fill-rate chart"></article>
+    <article><h2>Administrator dashboard</h2><img src="admin-390.png" data-screen="admin" alt="Implemented administrator dashboard with members, coaches and retained validation actions"></article>
+  </div>
+  <footer>Payment processing improvements remain deferred. No new backend schema or paid messaging provider.<br><a href="../../REDESIGN-IMPLEMENTATION.md">Implementation and verification notes</a> · <a href="../AUDIT-AND-DESIGN-STRATEGY.md">Original audit and revised design direction</a></footer>
+</main>
+<script>
+  document.querySelectorAll('[data-width]').forEach(button => button.addEventListener('click', () => {
+    const width = button.dataset.width;
+    document.querySelectorAll('[data-width]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    document.querySelectorAll('[data-screen]').forEach(img => img.src = `${img.dataset.screen}-${width}.png`);
+    document.body.classList.toggle('wide', width === '1200');
+  }));
+</script>
+</html>

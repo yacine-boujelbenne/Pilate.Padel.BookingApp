@@ -1,3 +1,5 @@
+import '../../widgets/session_date_fields.dart';
+import '../../widgets/page_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -175,76 +177,79 @@ class _NewSessionScreenState extends State<NewSessionScreen> {
         showBack: true,
         backTarget: '/coach/home',
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          FlexFormInput(controller: _title, hint: 'Session name'),
-          const SizedBox(height: 8),
-          FlexFormInput(controller: _date, hint: 'Date (YYYY-MM-DD)'),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                  child:
-                      FlexFormInput(controller: _start, hint: 'Start (HH:mm)')),
-              const SizedBox(width: 10),
-              Expanded(
-                  child: FlexFormInput(controller: _end, hint: 'End (HH:mm)')),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (_loadingStudios)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_studios.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('No studios available'),
-            )
-          else ...[
-            const Text('Studio'),
+      body: FlexPage(
+        maxWidth: 600,
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            const FlexSectionHeader(
+              title: 'Create your next session.',
+              subtitle:
+                  'Share the details. Your session will be sent for approval.',
+            ),
+            FlexFormInput(controller: _title, hint: 'Session name'),
             const SizedBox(height: 8),
-            FlexDropdown(
-              value: _selectedStudioId,
-              items: _studios
-                  .map((studio) => DropdownMenuItem<String>(
+            SessionDateFields(date: _date, start: _start, end: _end),
+            const SizedBox(height: 16),
+            if (_loadingStudios)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_studios.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Text('No studios available'),
+              )
+            else ...[
+              const Text('Studio'),
+              const SizedBox(height: 8),
+              FlexDropdown(
+                value: _selectedStudioId,
+                items: _studios
+                    .map(
+                      (studio) => DropdownMenuItem<String>(
                         value: studio['id'] as String,
                         child: Text(studio['name'] as String? ?? 'Studio'),
-                      ))
-                  .toList(),
-              onChanged: (value) => setState(() => _selectedStudioId = value),
-            ),
-            const SizedBox(height: 8),
-          ],
-          FlexFormInput(
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => _selectedStudioId = value),
+              ),
+              const SizedBox(height: 8),
+            ],
+            FlexFormInput(
               controller: _max,
               hint: 'Max participants',
-              keyboardType: TextInputType.number),
-          const SizedBox(height: 8),
-          FlexDropdown(
-            value: _level,
-            items: const [
-              DropdownMenuItem(value: 'all', child: Text('All levels')),
-              DropdownMenuItem(value: 'beginner', child: Text('Beginner')),
-              DropdownMenuItem(
-                  value: 'intermediate', child: Text('Intermediate')),
-              DropdownMenuItem(value: 'advanced', child: Text('Advanced')),
-            ],
-            onChanged: (v) => setState(() => _level = v ?? 'all'),
-          ),
-          const SizedBox(height: 8),
-          FlexFormInput(
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 8),
+            FlexDropdown(
+              value: _level,
+              items: const [
+                DropdownMenuItem(value: 'all', child: Text('All levels')),
+                DropdownMenuItem(value: 'beginner', child: Text('Beginner')),
+                DropdownMenuItem(
+                  value: 'intermediate',
+                  child: Text('Intermediate'),
+                ),
+                DropdownMenuItem(value: 'advanced', child: Text('Advanced')),
+              ],
+              onChanged: (v) => setState(() => _level = v ?? 'all'),
+            ),
+            const SizedBox(height: 8),
+            FlexFormInput(
               controller: _price,
               hint: 'Price TND',
-              keyboardType: TextInputType.number),
-          const SizedBox(height: 14),
-          FlexPrimaryButton(
-            label: loading ? 'Creating...' : 'Create session',
-            onPressed: loading ? null : _createSession,
-          ),
-        ],
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 14),
+            FlexPrimaryButton(
+              label: loading ? 'Creating...' : 'Create session',
+              onPressed: loading ? null : _createSession,
+            ),
+          ],
+        ),
       ),
     );
   }

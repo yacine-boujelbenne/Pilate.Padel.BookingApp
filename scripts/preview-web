@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+FLEX_PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$FLEX_PROJECT_ROOT"
+./scripts/flutterw build web --release --no-pub
+exec python3 scripts/serve_web.py "$@"

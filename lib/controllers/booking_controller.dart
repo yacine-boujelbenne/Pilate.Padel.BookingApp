@@ -1,16 +1,19 @@
-import 'package:flutter/material.dart';
+import 'app_notifier.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/booking.dart';
 import '../models/booking_detail.dart';
+import '../models/session_model.dart';
 import '../services/supabase_service.dart';
 
-class BookingController extends ChangeNotifier {
+class BookingController extends AppNotifier {
   final _client = SupabaseService.instance.client;
 
   List<Booking> _bookings = [];
   bool _loading = false;
   String? _error;
+  bool _submitting = false;
+  bool get isSubmitting => _submitting;
   RealtimeChannel? _channel;
   List<BookingDetail> _sessionBookings = [];
 
@@ -35,6 +38,10 @@ class BookingController extends ChangeNotifier {
     required String paymentMethod,
     required double amount,
   }) async {
+    if (_submitting) {
+      throw StateError('A reservation is already being submitted');
+    }
+    _submitting = true;
     _setLoading(true);
     try {
       final uid = _client.auth.currentUser?.id;
@@ -47,27 +54,33 @@ class BookingController extends ChangeNotifier {
           .select('id, status')
           .eq('member_id', uid)
           .eq('session_id', sessionId);
-      
+
       // Check for existing confirmed bookings with case-insensitive status
-      final hasConfirmed = (existing as List).any((e) =>
-          (e as Map<String, dynamic>)['status']
-              .toString()
-              .toLowerCase()
-              .trim() ==
-          'confirmed');
-      
+      final hasConfirmed = (existing as List).any(
+        (e) =>
+            (e as Map<String, dynamic>)['status']
+                .toString()
+                .toLowerCase()
+                .trim() ==
+            'confirmed',
+      );
+
       if (hasConfirmed) {
         throw Exception("You're already booked!");
       }
 
-      final inserted = await _client.from('bookings').insert({
-        'member_id': uid,
-        'session_id': sessionId,
-        'payment_method': paymentMethod,
-        'payment_status': paymentMethod == 'cash' ? 'pending' : 'paid',
-        'paid_amount_tnd': amount,
-        'status': 'confirmed',
-      }).select().single();
+      final inserted = await _client
+          .from('bookings')
+          .insert({
+            'member_id': uid,
+            'session_id': sessionId,
+            'payment_method': paymentMethod,
+            'payment_status': paymentMethod == 'cash' ? 'pending' : 'paid',
+            'paid_amount_tnd': amount,
+            'status': 'confirmed',
+          })
+          .select()
+          .single();
 
       final createdBooking = Booking.fromMap(
         Map<String, dynamic>.from(inserted as Map),
@@ -84,16 +97,22 @@ class BookingController extends ChangeNotifier {
       _error = e.toString();
       _setLoading(false);
       rethrow;
+    } finally {
+      _submitting = false;
+      notifyListeners();
     }
   }
 
   Future<void> cancelBooking(String bookingId) async {
     _setLoading(true);
     try {
-      await _client.from('bookings').update({
-        'status': 'cancelled',
-        'cancelled_at': DateTime.now().toIso8601String(),
-      }).eq('id', bookingId);
+      await _client
+          .from('bookings')
+          .update({
+            'status': 'cancelled',
+            'cancelled_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', bookingId);
       _error = null;
       await fetchMemberBookings();
     } catch (e) {
@@ -115,7 +134,7 @@ class BookingController extends ChangeNotifier {
     try {
       final res = await _client
           .from('bookings')
-          .select()
+          .select('*, session:sessions(${SessionModel.selection})')
           .eq('member_id', uid)
           .order('booked_at', ascending: false);
       _bookings = (res as List)
@@ -132,8 +151,10 @@ class BookingController extends ChangeNotifier {
   Future<void> fetchSessionBookings(String sessionId) async {
     _setLoading(true);
     try {
-      final res =
-          await _client.from('bookings').select().eq('session_id', sessionId);
+      final res = await _client
+          .from('bookings')
+          .select()
+          .eq('session_id', sessionId);
       _bookings = (res as List)
           .map((e) => Booking.fromMap(e as Map<String, dynamic>))
           .toList();
@@ -150,38 +171,40 @@ class BookingController extends ChangeNotifier {
     try {
       final res = await _client
           .from('bookings')
-          .select(
-            '*, profiles!member_id(first_name, last_name, phone, role)',
-          )
+          .select('*, profiles!member_id(first_name, last_name, phone, role)')
           .eq('session_id', sessionId)
           .eq('status', 'confirmed')
           .order('booked_at', ascending: false);
 
       // Filter for confirmed status with case-insensitive comparison
       _sessionBookings = (res as List)
-          .where((e) =>
-              (e as Map<String, dynamic>)['status']
-                  .toString()
-                  .toLowerCase()
-                  .trim() ==
-              'confirmed')
+          .where(
+            (e) =>
+                (e as Map<String, dynamic>)['status']
+                    .toString()
+                    .toLowerCase()
+                    .trim() ==
+                'confirmed',
+          )
           .map((e) {
-        final booking = e as Map<String, dynamic>;
-        final profile = booking['profiles'] as Map<String, dynamic>?;
-        return BookingDetail(
-          bookingId: booking['id'] as String,
-          memberId: booking['member_id'] as String,
-          memberName:
-              '${profile?['first_name'] ?? ''} ${profile?['last_name'] ?? ''}'
-                    .trim(),
-          memberEmail: profile?['phone'] as String? ?? '',
-          paymentMethod: booking['payment_method'] as String? ?? 'cash',
-          paymentStatus: booking['payment_status'] as String? ?? 'pending',
-          paidAmountTnd: (booking['paid_amount_tnd'] as num?)?.toDouble() ?? 0,
-          bookedAt: DateTime.parse(booking['booked_at'] as String),
-          status: booking['status'] as String? ?? 'confirmed',
-        );
-      }).toList();
+            final booking = e as Map<String, dynamic>;
+            final profile = booking['profiles'] as Map<String, dynamic>?;
+            return BookingDetail(
+              bookingId: booking['id'] as String,
+              memberId: booking['member_id'] as String,
+              memberName:
+                  '${profile?['first_name'] ?? ''} ${profile?['last_name'] ?? ''}'
+                      .trim(),
+              memberEmail: profile?['phone'] as String? ?? '',
+              paymentMethod: booking['payment_method'] as String? ?? 'cash',
+              paymentStatus: booking['payment_status'] as String? ?? 'pending',
+              paidAmountTnd:
+                  (booking['paid_amount_tnd'] as num?)?.toDouble() ?? 0,
+              bookedAt: DateTime.parse(booking['booked_at'] as String),
+              status: booking['status'] as String? ?? 'confirmed',
+            );
+          })
+          .toList();
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -193,7 +216,8 @@ class BookingController extends ChangeNotifier {
   Future<void> validatePayment(String bookingId) async {
     await _client
         .from('bookings')
-        .update({'payment_status': 'paid'}).eq('id', bookingId);
+        .update({'payment_status': 'paid'})
+        .eq('id', bookingId);
     await fetchMemberBookings();
   }
 

@@ -22,15 +22,17 @@ class SpotsBar extends StatelessWidget {
             minHeight: 4,
             backgroundColor: AppColors.sagePale,
             valueColor: AlwaysStoppedAnimation<Color>(
-                isFull ? AppColors.spotsFull : AppColors.sage),
+              isFull ? AppColors.spotsFull : AppColors.sage,
+            ),
           ),
         ),
         const SizedBox(height: 6),
         Text(
           '$booked / $max spots${progress >= 0.8 && !isFull ? ' · Almost full' : ''}',
           style: AppTextStyles.chip.copyWith(
-            color:
-                progress >= 0.8 && !isFull ? AppColors.redDark : AppColors.sage,
+            color: progress >= 0.8 && !isFull
+                ? AppColors.redDark
+                : AppColors.sage,
           ),
         ),
       ],

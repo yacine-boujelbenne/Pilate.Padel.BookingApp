@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+FLEX_PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$FLEX_PROJECT_ROOT"
+python3 scripts/prepare_client_env.py
+if [[ -n "${FLEX_FLUTTER_BIN:-}" ]]; then
+  exec "$FLEX_FLUTTER_BIN" "$@"
+elif command -v flutter >/dev/null 2>&1; then
+  exec flutter "$@"
+else
+  exec "$FLEX_PROJECT_ROOT/../.tooling/flutter/bin/flutter" "$@"
+fi

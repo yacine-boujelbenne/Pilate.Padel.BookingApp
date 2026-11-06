@@ -1,66 +1,92 @@
+import 'app_notifier.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/session_model.dart';
 import '../services/session_notification_service.dart';
 import '../services/supabase_service.dart';
 
-class SessionController extends ChangeNotifier {
-  final _client = SupabaseService.instance.client;
+class SessionController extends AppNotifier {
+  SessionController({SupabaseClient? client})
+    : _client = client ?? SupabaseService.instance.client;
+  final SupabaseClient _client;
 
   bool _loading = false;
   String? _error;
   List<SessionModel> _sessions = [];
   List<Map<String, dynamic>> _editRequests = [];
+  int _request = 0;
 
   bool get isLoading => _loading;
   String? get error => _error;
   List<SessionModel> get sessions => _sessions;
   List<Map<String, dynamic>> get editRequests => _editRequests;
 
+  Future<SessionModel?> fetchSession(String id) async {
+    final row = await _client
+        .from('sessions')
+        .select(SessionModel.selection)
+        .eq('id', id)
+        .maybeSingle();
+    return row == null ? null : SessionModel.fromMap(row);
+  }
+
   Future<void> fetchSessionsByDate(DateTime date) async {
+    final request = ++_request;
     _setLoading(true);
     try {
-      final dayStart = DateFormat('yyyy-MM-dd').format(date);
-      final dayEnd =
-          DateFormat('yyyy-MM-dd').format(date.add(const Duration(days: 1)));
+      final start = DateTime(date.year, date.month, date.day);
+      final dayStart = start.toUtc().toIso8601String();
+      final dayEnd = DateTime(
+        date.year,
+        date.month,
+        date.day + 1,
+      ).toUtc().toIso8601String();
       final res = await _client
           .from('sessions')
-          .select()
+          .select(SessionModel.selection)
           .gte('start_at', dayStart)
           .lt('start_at', dayEnd)
           .order('start_at');
+      if (request != _request) return;
 
       // Filter for scheduled status with case-insensitive comparison
       _sessions = (res as List)
-          .where((e) =>
-              (e as Map<String, dynamic>)['status']
-                  .toString()
-                  .toLowerCase()
-                  .trim() ==
-              'scheduled')
+          .where(
+            (e) =>
+                (e as Map<String, dynamic>)['status']
+                    .toString()
+                    .toLowerCase()
+                    .trim() ==
+                'scheduled',
+          )
           .map((e) => SessionModel.fromMap(e as Map<String, dynamic>))
           .toList();
       _error = null;
     } catch (e) {
-      _error = e.toString();
+      if (request == _request) _error = e.toString();
     } finally {
-      _setLoading(false);
+      if (request == _request) _setLoading(false);
     }
   }
 
   Future<void> fetchAllSessions() async {
+    final request = ++_request;
     _setLoading(true);
     try {
-      final res = await _client.from('sessions').select().order('start_at');
+      final res = await _client
+          .from('sessions')
+          .select(SessionModel.selection)
+          .order('start_at');
+      if (request != _request) return;
       _sessions = (res as List)
           .map((e) => SessionModel.fromMap(e as Map<String, dynamic>))
           .toList();
       _error = null;
     } catch (e) {
-      _error = e.toString();
+      if (request == _request) _error = e.toString();
     } finally {
-      _setLoading(false);
+      if (request == _request) _setLoading(false);
     }
   }
 
@@ -74,12 +100,14 @@ class SessionController extends ChangeNotifier {
 
       // Filter for pending status with case-insensitive comparison
       _editRequests = (res as List)
-          .where((e) =>
-              (e as Map<String, dynamic>)['status']
-                  .toString()
-                  .toLowerCase()
-                  .trim() ==
-              'pending')
+          .where(
+            (e) =>
+                (e as Map<String, dynamic>)['status']
+                    .toString()
+                    .toLowerCase()
+                    .trim() ==
+                'pending',
+          )
           .cast<Map<String, dynamic>>()
           .toList();
       _error = null;
@@ -161,7 +189,8 @@ class SessionController extends ChangeNotifier {
 
       await _client
           .from('session_edit_requests')
-          .update({'status': 'approved'}).eq('id', requestId);
+          .update({'status': 'approved'})
+          .eq('id', requestId);
 
       _error = null;
       await fetchAllSessions();
@@ -179,7 +208,8 @@ class SessionController extends ChangeNotifier {
     try {
       await _client
           .from('session_edit_requests')
-          .update({'status': 'rejected'}).eq('id', requestId);
+          .update({'status': 'rejected'})
+          .eq('id', requestId);
       _error = null;
       await fetchPendingEditRequests();
     } catch (e) {

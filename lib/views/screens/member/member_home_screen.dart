@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/booking_controller.dart';
@@ -9,262 +9,252 @@ import '../../../controllers/session_controller.dart';
 import '../../../controllers/waitlist_controller.dart';
 import '../../../models/session_model.dart';
 import '../../widgets/avatar_widget.dart';
-import '../../widgets/booking_modal.dart';
+import '../../widgets/booking_flow.dart';
+import '../../widgets/brand_story.dart';
+import '../../widgets/buttons.dart';
 import '../../widgets/calendar_row.dart';
-import '../../widgets/chip_badge.dart';
-import '../../widgets/flex_app_bar.dart';
 import '../../widgets/flex_bottom_nav.dart';
-import '../../widgets/payment_modal.dart';
+import '../../widgets/page_layout.dart';
+import '../../widgets/reservation_card.dart';
 import '../../widgets/session_card.dart';
-import '../../widgets/toast_message.dart';
-import '../../widgets/waitlist_modal.dart';
+import '../../widgets/state_widgets.dart';
+import '../../widgets/waitlist_flow.dart';
 
 class MemberHomeScreen extends StatefulWidget {
   const MemberHomeScreen({super.key});
-
   @override
   State<MemberHomeScreen> createState() => _MemberHomeScreenState();
 }
 
 class _MemberHomeScreenState extends State<MemberHomeScreen> {
-  DateTime _selectedDate = DateTime.now();
-
+  DateTime _selectedDate = DateUtils.dateOnly(DateTime.now());
+  final _pendingWaitlists = <String>{};
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SessionController>().fetchSessionsByDate(_selectedDate);
-      context.read<BookingController>().fetchMemberBookings();
-      context.read<BookingController>().subscribeRealtime();
-      context.read<WaitlistController>().subscribeRealtime();
+      if (mounted) _load();
     });
   }
 
-  Future<void> _openBookingFlow(SessionModel session) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BookingModal(
-        session: session,
-        onConfirm: () {
-          Navigator.of(context).pop();
-          showModalBottomSheet<void>(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (_) => PaymentModal(
-              sessionName: session.title,
-              amount: session.priceTnd,
-              onPay: (method) async {
-                Navigator.of(context).pop();
-                try {
-                  await context.read<BookingController>().bookSession(
-                        sessionId: session.id,
-                        paymentMethod: method,
-                        amount: session.priceTnd,
-                      );
-                  if (!mounted) return;
-                  await context
-                      .read<SessionController>()
-                      .fetchSessionsByDate(_selectedDate);
-                  if (!mounted) return;
-                  context.go('/member/payment-success', extra: {
-                    'sessionName': session.title,
-                    'amount': session.priceTnd,
-                    'method': method,
-                  });
-                } catch (_) {
-                  if (mounted) {
-                    ToastMessage.show(context,
-                        'Could not complete booking. Please try again.');
-                  }
-                }
-              },
-            ),
-          );
-        },
-      ),
-    );
+  Future<void> _load() async {
+    final sessions = context.read<SessionController>();
+    final bookings = context.read<BookingController>();
+    final waitlists = context.read<WaitlistController>();
+    bookings.subscribeRealtime();
+    waitlists.subscribeRealtime();
+    await Future.wait([
+      sessions.fetchSessionsByDate(_selectedDate),
+      bookings.fetchMemberBookings(),
+      waitlists.fetchMemberWaitlists(),
+    ]);
   }
 
-  Future<void> _openWaitlist(SessionModel session) async {
-    final waitlist = context.read<WaitlistController>();
-    final pos = await waitlist.getPosition(session.id);
-    if (!mounted) return;
+  void _select(DateTime date) {
+    setState(() => _selectedDate = DateUtils.dateOnly(date));
+    context.read<SessionController>().fetchSessionsByDate(_selectedDate);
+  }
 
-    await showModalBottomSheet<void>(
+  Future<void> _pickDate() async {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final date = await showDatePicker(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => WaitlistModal(
-        sessionName: session.title,
-        position: pos,
-        onJoin: (channel) async {
-          Navigator.of(context).pop();
-          try {
-            await waitlist.joinWaitlist(
-                sessionId: session.id, notifyChannel: channel);
-            if (mounted) {
-              ToastMessage.show(context, 'Added to waitlist');
-            }
-          } catch (_) {
-            if (mounted) {
-              ToastMessage.show(context, 'Could not join waitlist');
-            }
-          }
-        },
-      ),
+      initialDate: _selectedDate,
+      firstDate: today,
+      lastDate: DateTime(today.year + 1, today.month, today.day),
     );
+    if (date != null && mounted) _select(date);
+  }
+
+  Future<void> _waitlist(SessionModel session) async {
+    if (!_pendingWaitlists.add(session.id)) return;
+    setState(() {});
+    try {
+      await openSessionWaitlist(context, session);
+    } finally {
+      _pendingWaitlists.remove(session.id);
+      if (mounted) setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
-    final sessions = context.watch<SessionController>().sessions;
-    final sessionCtrl = context.watch<SessionController>();
-    final bookings = context.watch<BookingController>().bookings;
-    final confirmedBookings =
-        bookings.where((booking) => booking.status == 'confirmed').toList();
-    final bookedSessionIds =
-        confirmedBookings.map((booking) => booking.sessionId).toSet();
-
+    final sessions = context.watch<SessionController>();
+    final bookings = context.watch<BookingController>();
+    final waitlist = context.watch<WaitlistController>();
+    final upcoming =
+        bookings.bookings.where((b) => b.isUpcomingAt(DateTime.now())).toList()
+          ..sort((a, b) => a.session!.startAt.compareTo(b.session!.startAt));
+    final bookedIds = bookings.bookings
+        .where((b) => b.status == 'confirmed')
+        .map((b) => b.sessionId)
+        .toSet();
+    final waitingIds = waitlist.entries.map((w) => w.sessionId).toSet();
+    final name = auth.profile?.firstName.trim() ?? '';
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12
+        ? 'Good morning'
+        : hour < 18
+        ? 'Good afternoon'
+        : 'Good evening';
     return Scaffold(
-      appBar: const FlexAppBar(title: 'Fléx', badgeText: 'Member'),
       bottomNavigationBar: FlexBottomNav(
         currentIndex: 0,
-        onTap: (index) {
-          if (index == 1) context.go('/member/explore');
-          if (index == 2) context.go('/member/bookings');
-          if (index == 3) context.go('/member/profile');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'HOME'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'EXPLORE'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month), label: 'MY BOOKINGS'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'PROFILE'),
-        ],
+        onTap: (i) => goToMemberTab(context, i),
+        items: memberDestinations,
       ),
-      body: sessionCtrl.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.sageDark))
-          : ListView(
-              padding: const EdgeInsets.all(16),
+      body: SafeArea(
+        bottom: false,
+        child: FlexPage(
+          child: RefreshIndicator(
+            onRefresh: _load,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+              physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(16)),
+                Row(
+                  children: [
+                    Text(
+                      'Fléx.',
+                      style: AppTextStyles.logoTitle.copyWith(
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      tooltip: 'Notifications',
+                      onPressed: () => context.push('/member/notifications'),
+                      icon: const Icon(Icons.notifications_none_rounded),
+                    ),
+                    IconButton(
+                      tooltip: 'Your profile',
+                      onPressed: () => context.go('/member/profile'),
+                      icon: AvatarWidget(
+                        initials: name.isEmpty ? 'M' : name[0],
+                        imageUrl: auth.profile?.avatarUrl,
+                        size: 38,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                FlexEntrance(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$greeting${name.isEmpty ? '' : ', $name'}',
+                        style: AppTextStyles.sessionMeta,
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Find your rhythm.',
+                        style: AppTextStyles.display,
+                      ),
+                      const SizedBox(height: 24),
+                      if (bookings.isSubmitting)
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 16),
+                          child: LinearProgressIndicator(),
+                        ),
+                      if (bookings.isLoading && bookings.bookings.isEmpty)
+                        const FlexLoading()
+                      else if (bookings.error != null)
+                        FlexErrorCard(
+                          message: 'Your reservations could not be refreshed.',
+                          onRetry: bookings.fetchMemberBookings,
+                        )
+                      else if (upcoming.isNotEmpty)
+                        ReservationCard(
+                          booking: upcoming.first,
+                          featured: true,
+                          onTap: () => context.go('/member/bookings'),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                FlexSectionHeader(
+                  title: 'Make time for you',
+                  subtitle: DateFormat('EEEE, d MMMM').format(_selectedDate),
+                  action: IconButton(
+                    tooltip: 'Choose another date',
+                    onPressed: _pickDate,
+                    icon: const Icon(Icons.calendar_month_outlined),
+                  ),
+                ),
+                CalendarRow(selectedDate: _selectedDate, onSelected: _select),
+                const SizedBox(height: 20),
+                if (sessions.isLoading)
+                  const FlexSessionSkeletons()
+                else if (sessions.error != null)
+                  FlexErrorCard(
+                    message: 'We couldn’t load the schedule. Please try again.',
+                    onRetry: () => sessions.fetchSessionsByDate(_selectedDate),
+                  )
+                else if (sessions.sessions.isEmpty)
+                  FlexEmptyState(
+                    icon: Icons.self_improvement_rounded,
+                    text: 'A little space in the schedule',
+                    description:
+                        'There are no sessions on this date. Try another day.',
+                    action: FlexSecondaryButton(
+                      label: 'Choose a date',
+                      onPressed: _pickDate,
+                    ),
+                  )
+                else
+                  ...sessions.sessions.map(
+                    (s) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: SessionCard(
+                        session: s,
+                        isBooked: bookedIds.contains(s.id),
+                        onWaitlistList: waitingIds.contains(s.id),
+                        isBusy:
+                            bookings.isSubmitting ||
+                            _pendingWaitlists.contains(s.id),
+                        onViewBooking: () => context.go('/member/bookings'),
+                        onBook: () => openSessionBooking(
+                          context,
+                          s,
+                          onBooked: () =>
+                              sessions.fetchSessionsByDate(_selectedDate),
+                        ),
+                        onWaitlist: () => _waitlist(s),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                const BrandStory(compact: true),
+                const SizedBox(height: 20),
+                FlexSurface(
                   child: Row(
                     children: [
-                      AvatarWidget(
-                          initials:
-                              auth.profile?.firstName.substring(0, 1) ?? 'M',
-                          size: 52),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                                'Good morning, ${auth.profile?.firstName ?? 'Member'} ☀️',
-                                style: AppTextStyles.body
-                                    .copyWith(fontWeight: FontWeight.w700)),
-                            Text(
-                                '${auth.profile?.memberTier ?? 'Standard'} member',
-                                style: AppTextStyles.sessionMeta),
-                          ],
+                      const Icon(
+                        Icons.notifications_none_rounded,
+                        color: AppColors.sageDark,
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Waiting for a place?',
+                          style: AppTextStyles.body,
                         ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.push('/member/waitlists'),
+                        child: const Text('My waitlists'),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                CalendarRow(
-                  selectedDate: _selectedDate,
-                  onSelected: (date) {
-                    setState(() => _selectedDate = date);
-                    context.read<SessionController>().fetchSessionsByDate(date);
-                  },
-                ),
-                const SizedBox(height: 12),
-                Text('AVAILABLE SESSIONS', style: AppTextStyles.sectionLabel),
-                const SizedBox(height: 8),
-                if (sessions.isEmpty)
-                  const Center(
-                      child: Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Text('No sessions for selected day'))),
-                ...sessions.map(
-                  (s) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: SessionCard(
-                      session: s,
-                      isBooked: bookedSessionIds.contains(s.id),
-                      onBook: () => _openBookingFlow(s),
-                      onWaitlist: () => _openWaitlist(s),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text('UPCOMING BOOKINGS', style: AppTextStyles.sectionLabel),
-                const SizedBox(height: 8),
-                if (confirmedBookings.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16)),
-                    child: Text(
-                      'No confirmed bookings yet',
-                      style: AppTextStyles.body,
-                    ),
-                  )
-                else
-                  ...confirmedBookings.map(
-                    (booking) {
-                      final idx =
-                          sessions.indexWhere((s) => s.id == booking.sessionId);
-                      final sessionTitle =
-                          idx != -1 ? sessions[idx].title : 'Unknown session';
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.circular(16)),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Session $sessionTitle',
-                                    style: AppTextStyles.body,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Booked ${booking.bookedAt.day}/${booking.bookedAt.month}/${booking.bookedAt.year}',
-                                    style: AppTextStyles.sessionMeta,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const ChipBadge(
-                              text: 'Upcoming',
-                              variant: ChipBadgeVariant.amber,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
               ],
             ),
+          ),
+        ),
+      ),
     );
   }
 }

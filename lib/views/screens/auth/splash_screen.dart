@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +14,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer;
   bool get _hasPasswordRecoveryParams {
     final uri = Uri.base;
     return uri.queryParameters.containsKey('code') ||
@@ -24,36 +26,45 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final auth = context.read<AuthController>();
-      await Future<void>.delayed(const Duration(milliseconds: 700));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      if (_hasPasswordRecoveryParams) {
-        context.go('/reset-password');
-        return;
-      }
-      if (auth.user == null) {
-        context.go('/login');
-        return;
-      }
-      final role = auth.profile?.role;
-      if (role == 'admin') {
-        context.go('/admin/home');
-      } else if (role == 'coach') {
-        context.go('/coach/home');
-      } else {
-        context.go('/login');
-      }
+      final auth = context.read<AuthController>();
+      _timer = Timer(const Duration(milliseconds: 700), () {
+        if (!mounted) return;
+        if (_hasPasswordRecoveryParams) {
+          context.go('/reset-password');
+          return;
+        }
+        if (auth.user == null) {
+          context.go('/login');
+          return;
+        }
+        if (!auth.profileLoaded) return;
+        final role = auth.profile?.role;
+        if (role == 'admin') {
+          context.go('/admin/home');
+        } else if (role == 'coach') {
+          context.go('/coach/home');
+        } else if (role == 'member') {
+          context.go('/member/home');
+        } else {
+          context.go('/login');
+        }
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.sageDark,
-      body: Center(
-        child: Text('Fléx', style: AppTextStyles.logoTitle),
-      ),
+      body: Center(child: Text('Fléx', style: AppTextStyles.logoTitle)),
     );
   }
 }

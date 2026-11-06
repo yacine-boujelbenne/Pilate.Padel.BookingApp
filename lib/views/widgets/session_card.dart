@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import '../../app/theme.dart';
 import '../../models/session_model.dart';
 import 'buttons.dart';
-import 'full_session_banner.dart';
-import 'spots_bar.dart';
+import 'chip_badge.dart';
+import 'page_layout.dart';
 
 class SessionCard extends StatelessWidget {
-  final SessionModel session;
-  final VoidCallback onBook;
-  final VoidCallback onWaitlist;
-  final bool isBooked;
-  final bool onWaitlistList;
-
   const SessionCard({
     super.key,
     required this.session,
@@ -21,138 +14,125 @@ class SessionCard extends StatelessWidget {
     required this.onWaitlist,
     this.isBooked = false,
     this.onWaitlistList = false,
+    this.onViewBooking,
+    this.isBusy = false,
   });
-
+  final SessionModel session;
+  final VoidCallback onBook, onWaitlist;
+  final bool isBooked, onWaitlistList, isBusy;
+  final VoidCallback? onViewBooking;
   @override
   Widget build(BuildContext context) {
-    final start = DateFormat('HH:mm').format(session.startAt);
-    final end = DateFormat('HH:mm').format(session.endAt);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    final now = DateTime.now();
+    final elapsed =
+        !session.startAt.isAfter(now) || session.status != 'scheduled';
+    final level = session.level == 'all'
+        ? 'All levels'
+        : '${session.level[0].toUpperCase()}${session.level.substring(1)}';
+    return FlexSurface(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 48,
-                height: 48,
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: AppColors.mint,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                        DateFormat('EEE').format(session.startAt).toUpperCase(),
-                        style:
-                            AppTextStyles.chip.copyWith(color: AppColors.sage)),
-                    Text(DateFormat('d').format(session.startAt),
-                        style: AppTextStyles.screenTitle.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.sageDark)),
+                      DateFormat('HH:mm').format(session.startAt),
+                      style: AppTextStyles.sessionTitle,
+                    ),
+                    Text(
+                      '${session.endAt.difference(session.startAt).inMinutes} min',
+                      style: AppTextStyles.chip.copyWith(
+                        color: AppColors.textMid,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(session.title,
-                        style: AppTextStyles.sessionTitle,
-                        overflow: TextOverflow.ellipsis),
+                    Text(session.title, style: AppTextStyles.sessionTitle),
                     const SizedBox(height: 4),
                     Text(
-                        '$start - $end · Coach ${session.coachName} · Studio ${session.studioName}',
-                        style: AppTextStyles.sessionMeta),
+                      '${session.coachName} · ${session.studioName}',
+                      style: AppTextStyles.sessionMeta,
+                    ),
                     const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.mint,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.sagePale),
+                    Text(
+                      level,
+                      style: AppTextStyles.chip.copyWith(
+                        color: AppColors.textMid,
                       ),
-                      child: Text(
-                          '${session.priceTnd.toStringAsFixed(0)} TND / session',
-                          style: AppTextStyles.priceTag),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          SpotsBar(booked: session.bookedCount, max: session.maxParticipants),
-          if (session.isFull) ...[
-            const SizedBox(height: 8),
-            const FullSessionBanner(),
-          ],
-          const SizedBox(height: 10),
-          if (isBooked)
-            Row(
-              children: [
-                Expanded(
-                    child: FlexSecondaryButton(
-                        label: 'Booked ✓', onPressed: null)),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.redLight,
-                    foregroundColor: AppColors.redDark,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: const Text('Cancel'),
-                ),
-              ],
-            )
-          else if (session.isFull)
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: onWaitlist,
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: onWaitlistList
-                      ? AppColors.sagePale
-                      : AppColors.waitlistAmber,
-                  side: const BorderSide(color: AppColors.waitlistBorder),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                ),
-                child: Text(
-                  onWaitlistList ? '✓ On waitlist' : '🔔 Notify me',
-                  style: AppTextStyles.buttonSecondary
-                      .copyWith(color: AppColors.amberDark, fontSize: 13),
-                ),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                '${session.priceTnd.toStringAsFixed(0)} TND / session',
+                style: AppTextStyles.priceTag,
               ),
+              ChipBadge(
+                text: isBooked
+                    ? 'Reserved'
+                    : elapsed
+                    ? 'Closed'
+                    : onWaitlistList
+                    ? 'On waitlist'
+                    : session.isFull
+                    ? 'Full · waitlist available'
+                    : '${session.placesLeft} places available',
+                variant: isBooked
+                    ? ChipBadgeVariant.green
+                    : session.isFull
+                    ? ChipBadgeVariant.amber
+                    : ChipBadgeVariant.sage,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (isBooked)
+            FlexSecondaryButton(
+              label: 'View reservation',
+              onPressed: onViewBooking,
+              icon: Icons.check_circle_outline_rounded,
+            )
+          else if (elapsed)
+            const FlexSecondaryButton(
+              label: 'Session unavailable',
+              onPressed: null,
+            )
+          else if (onWaitlistList)
+            FlexSecondaryButton(label: 'View waitlist', onPressed: onWaitlist)
+          else if (session.isFull)
+            FlexSecondaryButton(
+              label: 'Join waitlist',
+              onPressed: isBusy ? null : onWaitlist,
+              icon: Icons.notifications_none_rounded,
             )
           else
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: onBook,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.sageDark,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                ),
-                child: Text('Book',
-                    style: AppTextStyles.buttonPrimary.copyWith(fontSize: 13)),
-              ),
+            FlexPrimaryButton(
+              label: 'Reserve a place',
+              onPressed: isBusy ? null : onBook,
+              icon: Icons.arrow_forward_rounded,
             ),
         ],
       ),

@@ -1,3 +1,5 @@
+import 'session_model.dart';
+
 class Booking {
   final String id;
   final String memberId;
@@ -8,6 +10,7 @@ class Booking {
   final DateTime bookedAt;
   final DateTime? cancelledAt;
   final String status;
+  final SessionModel? session;
 
   const Booking({
     required this.id,
@@ -19,7 +22,28 @@ class Booking {
     required this.bookedAt,
     required this.status,
     this.cancelledAt,
+    this.session,
   });
+
+  bool get isCancelled =>
+      status == 'cancelled' || session?.status == 'cancelled';
+  bool isUpcomingAt(DateTime now) =>
+      !isCancelled &&
+      status == 'confirmed' &&
+      session != null &&
+      session!.status == 'scheduled' &&
+      session!.startAt.isAfter(now);
+  String get displayTitle => session?.title ?? 'Session details unavailable';
+  String statusLabelAt(DateTime now) {
+    if (isCancelled) return 'Cancelled';
+    if (status == 'attended') return 'Attended';
+    if (session == null) return 'Confirmed';
+    if (session!.endAt.isBefore(now) || session!.status == 'completed') {
+      return 'Completed';
+    }
+    if (!session!.startAt.isAfter(now)) return 'In progress';
+    return 'Upcoming';
+  }
 
   factory Booking.fromMap(Map<String, dynamic> map) {
     return Booking(
@@ -33,7 +57,10 @@ class Booking {
       cancelledAt: map['cancelled_at'] != null
           ? DateTime.parse(map['cancelled_at'] as String)
           : null,
-      status: (map['status'] as String?) ?? 'confirmed',
+      status: ((map['status'] as String?) ?? 'confirmed').toLowerCase().trim(),
+      session: map['session'] is Map<String, dynamic>
+          ? SessionModel.fromMap(map['session'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

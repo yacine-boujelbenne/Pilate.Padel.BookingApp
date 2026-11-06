@@ -19,8 +19,8 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"
-  flutter: ">=3.19.0"
+  sdk: ">=3.10.3 <4.0.0"
+  flutter: ">=3.38.4"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -46,6 +46,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   url_launcher: ^6.2.0
   fl_chart: ^0.67.0
+  rive: ^0.14.11
 
 dev_dependencies:
   flutter_test:
@@ -59,4 +60,15 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - .env
+    - .env.client
+    - assets/images/
+    - assets/animations/
+    - assets/fonts/Manrope-OFL.txt
+    - assets/fonts/Inter-OFL.txt
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf

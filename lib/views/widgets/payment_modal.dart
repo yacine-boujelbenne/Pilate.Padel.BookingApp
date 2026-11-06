@@ -35,8 +35,9 @@ class _PaymentModalState extends State<PaymentModal> {
             color: selected ? AppColors.mint : AppColors.white,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-                color: selected ? AppColors.sageDark : AppColors.sagePale,
-                width: 1.5),
+              color: selected ? AppColors.sageDark : AppColors.sagePale,
+              width: 1.5,
+            ),
           ),
           child: Row(
             children: [
@@ -46,9 +47,12 @@ class _PaymentModalState extends State<PaymentModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: AppTextStyles.body
-                            .copyWith(fontWeight: FontWeight.w600)),
+                    Text(
+                      title,
+                      style: AppTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     Text(subtitle, style: AppTextStyles.sessionMeta),
                   ],
                 ),
@@ -59,8 +63,8 @@ class _PaymentModalState extends State<PaymentModal> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                      color:
-                          selected ? AppColors.sageDark : AppColors.sagePale),
+                    color: selected ? AppColors.sageDark : AppColors.sagePale,
+                  ),
                 ),
                 child: selected
                     ? Center(
@@ -68,8 +72,9 @@ class _PaymentModalState extends State<PaymentModal> {
                           width: 9,
                           height: 9,
                           decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.sageDark),
+                            shape: BoxShape.circle,
+                            color: AppColors.sageDark,
+                          ),
                         ),
                       )
                     : null,
@@ -92,16 +97,26 @@ class _PaymentModalState extends State<PaymentModal> {
         children: [
           Text(widget.sessionName, style: AppTextStyles.modalTitle),
           const SizedBox(height: 4),
-          Text('Total ${widget.amount.toStringAsFixed(0)} TND',
-              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            'Total ${widget.amount.toStringAsFixed(0)} TND',
+            style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 14),
-          tile('cash', 'Cash at studio', 'Pay at the studio on the day',
-              Icons.payments),
+          tile(
+            'cash',
+            'Cash at studio',
+            'Pay at the studio on the day',
+            Icons.payments,
+          ),
           const SizedBox(height: 8),
           tile('card', 'Bank card', 'Visa / Mastercard', Icons.credit_card),
           const SizedBox(height: 8),
-          tile('mobile', 'Mobile wallet', 'D17 / Flouci / ...',
-              Icons.phone_android),
+          tile(
+            'mobile',
+            'Mobile wallet',
+            'D17 / Flouci / ...',
+            Icons.phone_android,
+          ),
           const SizedBox(height: 16),
           FlexPrimaryButton(
             label: _method == 'cash'

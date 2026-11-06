@@ -1,3 +1,4 @@
+import '../../widgets/page_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +22,6 @@ class _ManageAccountScreenState extends State<ManageAccountScreen> {
   late final TextEditingController _first;
   late final TextEditingController _last;
 
-
   void _goBack() {
     if (GoRouter.of(context).canPop()) {
       context.pop();
@@ -29,6 +29,7 @@ class _ManageAccountScreenState extends State<ManageAccountScreen> {
     }
     context.go(widget.backTarget);
   }
+
   @override
   void initState() {
     super.initState();
@@ -74,28 +75,35 @@ class _ManageAccountScreenState extends State<ManageAccountScreen> {
         showBack: true,
         backTarget: widget.backTarget,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          FlexFormInput(controller: _first, hint: 'First name'),
-          const SizedBox(height: 8),
-          FlexFormInput(controller: _last, hint: 'Last name'),
-          const SizedBox(height: 16),
-          FlexPrimaryButton(
-            label: loading ? 'Saving...' : 'Save changes',
-            onPressed: loading ? null : _save,
-          ),
-          const SizedBox(height: 8),
-          FlexSecondaryButton(
-            label: 'Change password',
-            onPressed: () => context.push('/reset-password'),
-          ),
-          const SizedBox(height: 8),
-          FlexSecondaryButton(
-            label: 'Cancel',
-            onPressed: loading ? null : _goBack,
-          ),
-        ],
+      body: FlexPage(
+        maxWidth: 600,
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            const FlexSectionHeader(
+              title: 'The details that make you, you.',
+              subtitle: 'Keep your account up to date.',
+            ),
+            FlexFormInput(controller: _first, hint: 'First name'),
+            const SizedBox(height: 8),
+            FlexFormInput(controller: _last, hint: 'Last name'),
+            const SizedBox(height: 16),
+            FlexPrimaryButton(
+              label: loading ? 'Saving...' : 'Save changes',
+              onPressed: loading ? null : _save,
+            ),
+            const SizedBox(height: 8),
+            FlexSecondaryButton(
+              label: 'Change password',
+              onPressed: () => context.push('/reset-password'),
+            ),
+            const SizedBox(height: 8),
+            FlexSecondaryButton(
+              label: 'Cancel',
+              onPressed: loading ? null : _goBack,
+            ),
+          ],
+        ),
       ),
     );
   }

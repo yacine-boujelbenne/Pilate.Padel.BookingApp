@@ -1,11 +1,11 @@
 {
-    "name": "flex_pilates_studio",
-    "short_name": "flex_pilates_studio",
+    "name": "Fléx Pilates & Padel",
+    "short_name": "Fléx",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#EBF3EE",
+    "theme_color": "#5A6E62",
+    "description": "Find your rhythm. Book Pilates and Padel sessions, manage reservations, and stay connected with your club.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

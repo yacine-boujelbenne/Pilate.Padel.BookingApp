@@ -1,7 +1,9 @@
+import '../../widgets/page_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../../app/theme.dart';
 import '../../../controllers/booking_controller.dart';
 import '../../../controllers/session_controller.dart';
 import '../../../models/session_model.dart';
@@ -31,9 +33,9 @@ class _SessionAttendeesScreenState extends State<SessionAttendeesScreen> {
         if (sessionController.sessions.isEmpty) {
           sessionController.fetchAllSessions();
         }
-        context
-            .read<BookingController>()
-            .fetchSessionBookingsWithMembers(widget.sessionId);
+        context.read<BookingController>().fetchSessionBookingsWithMembers(
+          widget.sessionId,
+        );
       }
     });
   }
@@ -51,214 +53,216 @@ class _SessionAttendeesScreenState extends State<SessionAttendeesScreen> {
 
     return Scaffold(
       appBar: FlexAppBar(
-        title: 'Session Attendees',
+        title: 'Session attendees',
+        showBack: true,
         backTarget: widget.backTarget ?? '/coach/home',
       ),
-      body: Consumer<BookingController>(
-        builder: (context, bookingController, _) {
-          if (bookingController.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: FlexPage(
+        maxWidth: 1120,
+        child: Consumer<BookingController>(
+          builder: (context, bookingController, _) {
+            if (bookingController.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (bookingController.error != null) {
-            return Center(
-              child: Text(
-                'Error: ${bookingController.error}',
-                textAlign: TextAlign.center,
-              ),
-            );
-          }
+            if (bookingController.error != null) {
+              return Center(
+                child: Text(
+                  'Error: ${bookingController.error}',
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }
 
-          final attendees = bookingController.sessionBookings;
+            final attendees = bookingController.sessionBookings;
 
-          if (attendees.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.people_outline,
-                      size: 64, color: Colors.grey.shade400),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No confirmed bookings yet',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey.shade600,
+            if (attendees.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.people_outline, size: 64, color: AppColors.sage),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No confirmed bookings yet',
+                      style: TextStyle(fontSize: 16, color: AppColors.textMid),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (session != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            session.title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${DateFormat('MMM dd, yyyy').format(session.startAt)} • ${DateFormat('HH:mm').format(session.startAt)} - ${DateFormat('HH:mm').format(session.endAt)}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${attendees.length} Confirmed Bookings',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.blue,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
                   ],
-                  Text(
-                    'Attendees (${attendees.length})',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: attendees.length,
-                    separatorBuilder: (_, __) => const Divider(),
-                    itemBuilder: (context, index) {
-                      final attendee = attendees[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                ),
+              );
+            }
+
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (session != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.mint,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.sagePale),
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade100,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      attendee.memberName.isNotEmpty
-                                          ? attendee.memberName[0].toUpperCase()
-                                          : '?',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.blue.shade700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        attendee.memberName,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      if (attendee.memberEmail.isNotEmpty)
-                                        Text(
-                                          attendee.memberEmail,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _getPaymentStatusColor(
-                                            attendee.paymentStatus)
-                                        .withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    attendee.paymentStatus
-                                        .toUpperCase()
-                                        .replaceAll('_', ' '),
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: _getPaymentStatusColor(
-                                          attendee.paymentStatus),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 52.0),
-                              child: Text(
-                                'Booked: ${_formatDate(attendee.bookedAt)}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey.shade500,
-                                ),
+                            Text(
+                              session.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            if (attendee.paidAmountTnd > 0)
+                            const SizedBox(height: 4),
+                            Text(
+                              '${DateFormat('MMM dd, yyyy').format(session.startAt)} • ${DateFormat('HH:mm').format(session.startAt)} - ${DateFormat('HH:mm').format(session.endAt)}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textMid,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${attendees.length} Confirmed Bookings',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.sageDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                    Text(
+                      'Attendees (${attendees.length})',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: attendees.length,
+                      separatorBuilder: (_, _) => const Divider(),
+                      itemBuilder: (context, index) {
+                        final attendee = attendees[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.sagePale,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        attendee.memberName.isNotEmpty
+                                            ? attendee.memberName[0]
+                                                  .toUpperCase()
+                                            : '?',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.forest,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          attendee.memberName,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        if (attendee.memberEmail.isNotEmpty)
+                                          Text(
+                                            attendee.memberEmail,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.textMid,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getPaymentStatusColor(
+                                        attendee.paymentStatus,
+                                      ).withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      attendee.paymentStatus
+                                          .toUpperCase()
+                                          .replaceAll('_', ' '),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: _getPaymentStatusColor(
+                                          attendee.paymentStatus,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
                               Padding(
                                 padding: const EdgeInsets.only(left: 52.0),
                                 child: Text(
-                                  'Amount: ${attendee.paidAmountTnd.toStringAsFixed(2)} TND',
+                                  'Booked: ${_formatDate(attendee.bookedAt)}',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Colors.grey.shade500,
+                                    color: AppColors.textMid,
                                   ),
                                 ),
                               ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                              if (attendee.paidAmountTnd > 0)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 52.0),
+                                  child: Text(
+                                    'Amount: ${attendee.paidAmountTnd.toStringAsFixed(2)} TND',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textMid,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -266,11 +270,11 @@ class _SessionAttendeesScreenState extends State<SessionAttendeesScreen> {
   Color _getPaymentStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'paid':
-        return Colors.green;
+        return AppColors.greenDark;
       case 'pending':
-        return Colors.orange;
+        return AppColors.amberDark;
       default:
-        return Colors.grey;
+        return AppColors.textMid;
     }
   }
 

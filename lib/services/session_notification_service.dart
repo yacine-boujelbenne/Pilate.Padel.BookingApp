@@ -57,7 +57,7 @@ class SessionNotificationService {
           'session_id': sessionId,
           'title': 'Session Cancelled',
           'body':
-              '$sessionTitle has been cancelled. Your payment will be refunded.',
+              '$sessionTitle has been cancelled. Open your bookings for the reservation details.',
           'is_read': false,
         };
       }).toList();
@@ -66,7 +66,8 @@ class SessionNotificationService {
 
       if (kDebugMode) {
         debugPrint(
-            'Session $sessionId cancelled: notified ${memberIds.length} members');
+          'Session $sessionId cancelled: notified ${memberIds.length} members',
+        );
       }
     } catch (e) {
       if (kDebugMode) {
@@ -78,7 +79,8 @@ class SessionNotificationService {
 
   /// Fetch notifications for the current user
   Future<List<Map<String, dynamic>>> fetchUserNotifications(
-      String userId) async {
+    String userId,
+  ) async {
     try {
       final res = await _client
           .from('notifications')
@@ -91,7 +93,7 @@ class SessionNotificationService {
       if (kDebugMode) {
         debugPrint('Error fetching notifications: $e');
       }
-      return [];
+      rethrow;
     }
   }
 
@@ -100,7 +102,8 @@ class SessionNotificationService {
     try {
       await _client
           .from('notifications')
-          .update({'is_read': true}).eq('id', notificationId);
+          .update({'is_read': true})
+          .eq('id', notificationId);
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Error marking notification as read: $e');

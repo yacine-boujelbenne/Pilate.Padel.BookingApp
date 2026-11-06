@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+import 'app_notifier.dart';
 
 import '../services/supabase_service.dart';
 
-class CoachController extends ChangeNotifier {
+class CoachController extends AppNotifier {
   final _client = SupabaseService.instance.client;
 
   bool _loading = false;
@@ -65,7 +65,7 @@ class CoachController extends ChangeNotifier {
       final res = await _client
           .from('bookings')
           .select(
-            'member_id, session_id, profiles!member_id(first_name, last_name, phone, speciality, role)',
+            'member_id, session_id, status, profiles!member_id(first_name, last_name, phone, speciality, role)',
           )
           .order('booked_at', ascending: false);
 
@@ -75,11 +75,11 @@ class CoachController extends ChangeNotifier {
         final booking = row as Map<String, dynamic>;
         final sessionId = booking['session_id'] as String?;
         final memberId = booking['member_id'] as String?;
-        
+
         // Filter for confirmed status with case-insensitive comparison
         final status = (booking['status'] as String?)?.toLowerCase().trim();
         if (status != 'confirmed') continue;
-        
+
         if (sessionId == null || memberId == null) continue;
         if (!sessionIds.contains(sessionId) || seenMembers.contains(memberId)) {
           continue;
@@ -131,6 +131,9 @@ class CoachController extends ChangeNotifier {
     _upcomingSessions = 0;
 
     for (final session in _schedule) {
+      if (session['status'] == 'cancelled' || session['status'] == 'pending') {
+        continue;
+      }
       final startAt = _parseDate(session['start_at']);
       final booked = (session['booked_count'] as num?)?.toDouble() ?? 0;
       final max = (session['max_participants'] as num?)?.toDouble() ?? 0;
@@ -161,7 +164,8 @@ class CoachController extends ChangeNotifier {
     _averageFillRate = fillCount == 0 ? 0 : totalFill / fillCount;
     _fillRates = List.generate(
       fillTotals.length,
-      (index) => fillCounts[index] == 0 ? 0 : fillTotals[index] / fillCounts[index],
+      (index) =>
+          fillCounts[index] == 0 ? 0 : fillTotals[index] / fillCounts[index],
     );
   }
 

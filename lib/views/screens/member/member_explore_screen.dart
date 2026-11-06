@@ -1,9 +1,11 @@
+import '../../widgets/page_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
 import '../../../services/coach_directory_service.dart';
-import '../../widgets/chip_badge.dart';
+import '../../widgets/brand_story.dart';
+import '../../widgets/state_widgets.dart';
 import '../../widgets/coach_card.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/flex_bottom_nav.dart';
@@ -100,86 +102,64 @@ class _MemberExploreScreenState extends State<MemberExploreScreen> {
           if (index == 2) context.go('/member/bookings');
           if (index == 3) context.go('/member/profile');
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'HOME'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'EXPLORE'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month), label: 'MY BOOKINGS'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'PROFILE'),
-        ],
+        items: memberDestinations,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          FlexFormInput(
+      body: FlexPage(
+        maxWidth: 1120,
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            const FlexSectionHeader(
+              title: 'Meet your next motivator',
+              subtitle: 'Find the people who bring out your best.',
+            ),
+            const BrandStory(padel: true, compact: true),
+            const SizedBox(height: 24),
+            FlexFormInput(
               controller: _searchController,
-              hint: 'Search sessions or coaches…'),
-          const SizedBox(height: 12),
-          Text('OUR COACHES', style: AppTextStyles.sectionLabel),
-          const SizedBox(height: 8),
-          if (_loading && coaches.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_error != null)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Text(
-                'Could not load coaches right now.',
-                style: AppTextStyles.body,
-              ),
-            )
-          else if (coaches.isEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Text(
-                _searchQuery.isEmpty
-                    ? 'No coaches available yet.'
-                    : 'No coaches match your search.',
-                style: AppTextStyles.body,
-              ),
-            )
-          else
-            ...coaches.map(
-              (coach) {
+              hint: 'Search coaches or specialities',
+            ),
+            const SizedBox(height: 12),
+            Text('OUR COACHES', style: AppTextStyles.sectionLabel),
+            const SizedBox(height: 8),
+            if (_loading && coaches.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_error != null)
+              FlexErrorCard(
+                message: 'We couldn’t load the coaches.',
+                onRetry: _loadCoaches,
+              )
+            else if (coaches.isEmpty)
+              FlexEmptyState(
+                icon: Icons.people_outline_rounded,
+                text: _searchQuery.isEmpty
+                    ? 'Coaches are on their way'
+                    : 'No match this time',
+                description: _searchQuery.isEmpty
+                    ? 'Check back for new coaches.'
+                    : 'Try another name or speciality.',
+              )
+            else
+              ...coaches.map((coach) {
                 final specialty = coach.speciality?.trim().isNotEmpty == true
                     ? coach.speciality!
                     : 'Coach';
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(14)),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CoachCard(
-                          name: coach.fullName,
-                          speciality: specialty,
-                          onTap: () =>
-                              context.go('/member/coaches/${coach.id}'),
-                        ),
-                      ),
-                      const ChipBadge(
-                          text: 'Active', variant: ChipBadgeVariant.green),
-                    ],
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: CoachCard(
+                    name: coach.fullName,
+                    speciality: specialty,
+                    imageUrl: coach.avatarUrl,
+                    onTap: () => context.go('/member/coaches/${coach.id}'),
                   ),
                 );
-              },
-            ),
-        ],
+              }),
+          ],
+        ),
       ),
     );
   }

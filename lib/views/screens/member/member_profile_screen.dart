@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
 import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../services/member_profile_summary_service.dart';
@@ -10,137 +9,179 @@ import '../../widgets/buttons.dart';
 import '../../widgets/chip_badge.dart';
 import '../../widgets/flex_app_bar.dart';
 import '../../widgets/flex_bottom_nav.dart';
+import '../../widgets/page_layout.dart';
+import '../../widgets/state_widgets.dart';
 import '../../widgets/stat_card.dart';
 
-String _capitalize(String value) {
-  if (value.isEmpty) return value;
-  return value[0].toUpperCase() + value.substring(1).toLowerCase();
+class MemberProfileScreen extends StatefulWidget {
+  const MemberProfileScreen({super.key});
+  @override
+  State<MemberProfileScreen> createState() => _MemberProfileScreenState();
 }
 
-class MemberProfileScreen extends StatelessWidget {
-  const MemberProfileScreen({super.key});
+class _MemberProfileScreenState extends State<MemberProfileScreen> {
+  final _service = MemberProfileSummaryService();
+  Future<MemberProfileSummary>? _summary;
+  String? _profileKey;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final profile = context.watch<AuthController>().profile;
+    final key = profile == null
+        ? null
+        : '${profile.id}:${profile.memberTier}:${profile.createdAt}';
+    if (key != _profileKey) {
+      _profileKey = key;
+      _refresh();
+    }
+  }
 
-  static final MemberProfileSummaryService _summaryService =
-      MemberProfileSummaryService();
+  Future<void> _refresh() async {
+    final profile = context.read<AuthController>().profile;
+    if (profile == null) return;
+    final future = _service.fetch(
+      memberId: profile.id,
+      createdAt: profile.createdAt,
+      memberTier: profile.memberTier,
+    );
+    setState(() => _summary = future);
+    try {
+      await future;
+    } catch (_) {
+      /* Presented by FutureBuilder with retry. */
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
     final profile = auth.profile;
-    final summaryFuture = profile == null
-        ? null
-        : _summaryService.fetch(
-            memberId: profile.id,
-            createdAt: profile.createdAt,
-            memberTier: profile.memberTier,
-          );
-
+    final name = profile?.fullName.trim() ?? '';
     return Scaffold(
-      appBar: const FlexAppBar(title: 'Profile', badgeText: 'Member'),
+      appBar: const FlexAppBar(title: 'Your space'),
       bottomNavigationBar: FlexBottomNav(
         currentIndex: 3,
-        onTap: (index) {
-          if (index == 0) context.go('/member/home');
-          if (index == 1) context.go('/member/explore');
-          if (index == 2) context.go('/member/bookings');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'HOME'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'EXPLORE'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month), label: 'MY BOOKINGS'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'PROFILE'),
-        ],
+        onTap: (i) => goToMemberTab(context, i),
+        items: memberDestinations,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Center(
-            child: AvatarWidget(
-              initials: profile?.firstName.isNotEmpty == true
-                  ? profile!.firstName[0]
-                  : 'M',
-              size: 72,
-            ),
+      body: FlexPage(
+        maxWidth: 760,
+        child: RefreshIndicator(
+          onRefresh: _refresh,
+          child: ListView(
+            padding: const EdgeInsets.all(24),
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              FlexEntrance(
+                child: FlexSurface(
+                  child: Column(
+                    children: [
+                      AvatarWidget(
+                        initials: name.isEmpty ? 'M' : name[0],
+                        imageUrl: profile?.avatarUrl,
+                        size: 80,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        name.isEmpty ? 'Your profile' : name,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.modalTitle,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        auth.user?.email ?? '',
+                        style: AppTextStyles.sessionMeta,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 14),
+                      ChipBadge(
+                        text: '${profile?.memberTier ?? 'standard'} member',
+                        variant: ChipBadgeVariant.sage,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+              const FlexSectionHeader(title: 'Your movement, so far'),
+              FutureBuilder<MemberProfileSummary>(
+                future: _summary,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const FlexLoading();
+                  }
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return FlexErrorCard(
+                      message: 'Your activity couldn’t be loaded.',
+                      onRetry: _refresh,
+                    );
+                  }
+                  final value = snapshot.data!;
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final columns = constraints.maxWidth >= 580 ? 3 : 2;
+                      final width =
+                          (constraints.maxWidth - (columns - 1) * 12) / columns;
+                      return Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          for (final item in [
+                            (value.sessionsDone, 'Sessions completed'),
+                            (value.sessionsLeft, 'Upcoming sessions'),
+                            (value.monthsActive, 'Months with Fléx'),
+                          ])
+                            SizedBox(
+                              width: width,
+                              child: StatCard(
+                                value: '${item.$1}',
+                                label: item.$2,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 28),
+              const FlexSectionHeader(title: 'Make it yours'),
+              FlexPrimaryButton(
+                label: 'Manage account',
+                onPressed: () => context.go('/account/manage'),
+                icon: Icons.person_outline_rounded,
+              ),
+              const SizedBox(height: 10),
+              FlexSecondaryButton(
+                label: 'My waitlists',
+                onPressed: () => context.push('/member/waitlists'),
+                icon: Icons.notifications_none_rounded,
+              ),
+              const SizedBox(height: 10),
+              FlexSecondaryButton(
+                label: 'Club updates',
+                onPressed: () => context.push('/member/notifications'),
+                icon: Icons.inbox_outlined,
+              ),
+              const SizedBox(height: 10),
+              FlexSecondaryButton(
+                label: 'Settings',
+                onPressed: () =>
+                    context.go('/settings', extra: '/member/profile'),
+                icon: Icons.tune_rounded,
+              ),
+              const SizedBox(height: 20),
+              TextButton.icon(
+                onPressed: () async {
+                  await auth.signOut();
+                  if (context.mounted) context.go('/login');
+                },
+                icon: const Icon(Icons.logout_rounded, size: 18),
+                label: const Text('Sign out'),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          Center(
-            child: Text(
-              profile?.fullName ?? 'Member',
-              style: AppTextStyles.modalTitle
-                  .copyWith(fontWeight: FontWeight.bold),
-            ),
-          ),
-          Center(
-            child:
-                Text(auth.user?.email ?? '', style: AppTextStyles.sessionMeta),
-          ),
-          const SizedBox(height: 6),
-          Center(
-            child: ChipBadge(
-              text: '${_capitalize(profile?.memberTier ?? 'standard')} Member',
-              variant: ChipBadgeVariant.green,
-            ),
-          ),
-          const SizedBox(height: 14),
-          if (profile == null)
-            const Center(child: CircularProgressIndicator())
-          else
-            FutureBuilder<MemberProfileSummary>(
-              future: summaryFuture,
-              builder: (context, snapshot) {
-                final summary = snapshot.data;
-                if (snapshot.connectionState == ConnectionState.waiting &&
-                    summary == null) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                return GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    StatCard(
-                      value: '${summary?.sessionsDone ?? 0}',
-                      label: 'Sessions done',
-                    ),
-                    StatCard(
-                      value: '${summary?.sessionsLeft ?? 0}',
-                      label: 'Sessions left',
-                    ),
-                    StatCard(
-                      value: (summary?.ratingScore ?? 0).toStringAsFixed(1),
-                      label: 'Avg rating',
-                    ),
-                    StatCard(
-                      value: '${summary?.monthsActive ?? 0}',
-                      label: 'Months active',
-                    ),
-                  ],
-                );
-              },
-            ),
-          const SizedBox(height: 16),
-          FlexPrimaryButton(
-            label: 'Manage account',
-            onPressed: () => context.go('/account/manage'),
-          ),
-          const SizedBox(height: 8),
-          FlexSecondaryButton(
-            label: 'Settings',
-            onPressed: () => context.go('/settings', extra: '/member/profile'),
-          ),
-          const SizedBox(height: 8),
-          FlexSecondaryButton(
-            label: 'Sign out',
-            onPressed: () async {
-              await auth.signOut();
-              if (context.mounted) context.go('/login');
-            },
-          ),
-        ],
+        ),
       ),
     );
   }

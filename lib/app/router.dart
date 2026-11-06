@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../controllers/auth_controller.dart';
+import '../models/session_model.dart';
+import '../views/screens/member/member_notifications_screen.dart';
 import '../views/screens/admin/add_coach_screen.dart';
 import '../views/screens/admin/admin_home_screen.dart';
 import '../views/screens/admin/admin_sessions_screen.dart';
@@ -39,76 +41,98 @@ class AppRouter {
       GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
-          path: '/register',
-          builder: (context, state) => const RegisterScreen()),
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
       GoRoute(
-          path: '/forgot-password',
-          builder: (context, state) => const ForgotPasswordScreen()),
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
       GoRoute(
-          path: '/reset-password',
-          builder: (context, state) => const ResetPasswordScreen()),
+        path: '/reset-password',
+        builder: (context, state) => const ResetPasswordScreen(),
+      ),
       GoRoute(
-          path: '/settings',
-          builder: (context, state) => SettingsScreen(
-                backTarget: (state.extra as String?) ?? '/login',
-              )),
+        path: '/settings',
+        builder: (context, state) =>
+            SettingsScreen(backTarget: (state.extra as String?) ?? _roleHome),
+      ),
       GoRoute(
-          path: '/account/manage',
-          builder: (context, state) => ManageAccountScreen(
-                backTarget: (state.extra as String?) ?? '/member/profile',
-              )),
+        path: '/account/manage',
+        builder: (context, state) => ManageAccountScreen(
+          backTarget: (state.extra as String?) ?? _roleHome,
+        ),
+      ),
       GoRoute(
-          path: '/member/home',
-          builder: (context, state) => const MemberHomeScreen()),
+        path: '/member/home',
+        builder: (context, state) => const MemberHomeScreen(),
+      ),
       GoRoute(
-          path: '/member/explore',
-          builder: (context, state) => const MemberExploreScreen()),
+        path: '/member/explore',
+        builder: (context, state) => const MemberExploreScreen(),
+      ),
       GoRoute(
-          path: '/member/coaches/:id',
-          builder: (context, state) => MemberCoachDetailScreen(
-                coachId: state.pathParameters['id']!,
-              )),
+        path: '/member/coaches/:id',
+        builder: (context, state) =>
+            MemberCoachDetailScreen(coachId: state.pathParameters['id']!),
+      ),
       GoRoute(
-          path: '/member/bookings',
-          builder: (context, state) => const MemberBookingsScreen()),
+        path: '/member/bookings',
+        builder: (context, state) => const MemberBookingsScreen(),
+      ),
       GoRoute(
-          path: '/member/waitlists',
-          builder: (context, state) => const MemberWaitlistScreen()),
+        path: '/member/waitlists',
+        builder: (context, state) => const MemberWaitlistScreen(),
+      ),
       GoRoute(
-          path: '/member/profile',
-          builder: (context, state) => const MemberProfileScreen()),
+        path: '/member/profile',
+        builder: (context, state) => const MemberProfileScreen(),
+      ),
       GoRoute(
-          path: '/member/booking/new',
-          builder: (context, state) => const MemberHomeScreen()),
+        path: '/member/notifications',
+        builder: (context, state) => const MemberNotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/member/booking/new',
+        builder: (context, state) => const MemberHomeScreen(),
+      ),
       GoRoute(
         path: '/member/payment-success',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
+          if (extra.isEmpty) return const MemberBookingsScreen();
           return PaymentSuccessScreen(
             sessionName: (extra['sessionName'] as String?) ?? 'Session',
             amount: (extra['amount'] as num?)?.toDouble() ?? 0,
             method: (extra['method'] as String?) ?? 'cash',
+            session: extra['session'] as SessionModel?,
           );
         },
       ),
       GoRoute(
-          path: '/coach/home',
-          builder: (context, state) => const CoachHomeScreen()),
+        path: '/coach/home',
+        builder: (context, state) => const CoachHomeScreen(),
+      ),
       GoRoute(
-          path: '/coach/sessions/new',
-          builder: (context, state) => const NewSessionScreen()),
+        path: '/coach/sessions/new',
+        builder: (context, state) => const NewSessionScreen(),
+      ),
       GoRoute(
-          path: '/admin/home',
-          builder: (context, state) => const AdminHomeScreen()),
+        path: '/admin/home',
+        builder: (context, state) => const AdminHomeScreen(),
+      ),
       GoRoute(
-          path: '/admin/coaches/new',
-          builder: (context, state) => const AddCoachScreen()),
+        path: '/admin/coaches/new',
+        builder: (context, state) => const AddCoachScreen(),
+      ),
       GoRoute(
-          path: '/admin/sessions/new',
-          builder: (context, state) => const AdminNewSessionScreen()),
+        path: '/admin/sessions/new',
+        builder: (context, state) => const AdminNewSessionScreen(),
+      ),
       GoRoute(
-          path: '/admin/sessions',
-          builder: (context, state) => const AdminSessionsScreen()),
+        path: '/admin/sessions',
+        builder: (context, state) => const AdminSessionsScreen(),
+      ),
       GoRoute(
         path: '/admin/sessions/:id/edit',
         builder: (context, state) =>
@@ -140,7 +164,7 @@ class AppRouter {
       '/login',
       '/register',
       '/forgot-password',
-      '/reset-password'
+      '/reset-password',
     };
 
     if (isLoggedIn && !profileLoaded) {
@@ -160,29 +184,39 @@ class AppRouter {
     }
 
     if (isLoggedIn) {
+      if (path.startsWith('/sessions/') && role != 'coach' && role != 'admin') {
+        return role == 'member' ? '/member/home' : '/login';
+      }
       if (path.startsWith('/admin') && role != 'admin') {
         return role == 'coach'
             ? '/coach/home'
             : role == 'member'
-                ? '/member/home'
-                : '/login';
+            ? '/member/home'
+            : '/login';
       }
       if (path.startsWith('/coach') && role != 'coach') {
         return role == 'admin'
             ? '/admin/home'
             : role == 'member'
-                ? '/member/home'
-                : '/login';
+            ? '/member/home'
+            : '/login';
       }
       if (path.startsWith('/member') && role != 'member') {
         return role == 'admin'
             ? '/admin/home'
             : role == 'coach'
-                ? '/coach/home'
-                : '/login';
+            ? '/coach/home'
+            : '/login';
       }
     }
 
     return null;
   }
+
+  String get _roleHome => switch (authController.profile?.role) {
+    'admin' => '/admin/home',
+    'coach' => '/coach/home',
+    'member' => '/member/profile',
+    _ => '/login',
+  };
 }

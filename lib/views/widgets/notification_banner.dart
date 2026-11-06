@@ -28,7 +28,10 @@ class NotificationBanner extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: const [
             BoxShadow(
-                color: Color(0x33000000), blurRadius: 8, offset: Offset(0, 4))
+              color: Color(0x33000000),
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
           ],
         ),
         child: Row(
@@ -37,7 +40,9 @@ class NotificationBanner extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: const BoxDecoration(
-                  shape: BoxShape.circle, color: AppColors.white),
+                shape: BoxShape.circle,
+                color: AppColors.white,
+              ),
               child: const Icon(Icons.notifications, color: AppColors.sageDark),
             ),
             const SizedBox(width: 10),
@@ -45,23 +50,36 @@ class NotificationBanner extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: AppTextStyles.body.copyWith(
-                          color: AppColors.white, fontWeight: FontWeight.bold)),
-                  Text(subtitle,
-                      style: AppTextStyles.sessionMeta.copyWith(
-                          color: AppColors.white.withValues(alpha: 0.75))),
+                  Text(
+                    title,
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.sessionMeta.copyWith(
+                      color: AppColors.white.withValues(alpha: 0.75),
+                    ),
+                  ),
                 ],
               ),
             ),
             TextButton(
-                onPressed: onBook,
-                child: const Text('Book',
-                    style: TextStyle(color: AppColors.white))),
+              onPressed: onBook,
+              child: const Text(
+                'Book',
+                style: TextStyle(color: AppColors.white),
+              ),
+            ),
             TextButton(
-                onPressed: onDismiss,
-                child: const Text('Dismiss',
-                    style: TextStyle(color: AppColors.white))),
+              onPressed: onDismiss,
+              child: const Text(
+                'Dismiss',
+                style: TextStyle(color: AppColors.white),
+              ),
+            ),
           ],
         ),
       ),

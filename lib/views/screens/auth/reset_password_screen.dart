@@ -1,3 +1,4 @@
+import '../../widgets/page_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -5,6 +6,8 @@ import 'package:provider/provider.dart';
 import '../../../app/theme.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../widgets/buttons.dart';
+import '../../widgets/auth_login_link.dart';
+import '../../widgets/flex_app_bar.dart';
 import '../../widgets/form_fields.dart';
 import '../../widgets/toast_message.dart';
 
@@ -62,52 +65,56 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget build(BuildContext context) {
     final loading = context.watch<AuthController>().isLoading;
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        title: Text('New password', style: AppTextStyles.screenTitle),
+      appBar: const FlexAppBar(
+        title: 'New password',
+        showBack: true,
+        backTarget: '/login',
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('RESET PASSWORD', style: AppTextStyles.sectionLabel),
-              const SizedBox(height: 10),
-              Text(
-                'Enter your new password below.',
-                style: AppTextStyles.body,
-              ),
-              const SizedBox(height: 20),
-              Text('NEW PASSWORD', style: AppTextStyles.formLabel),
-              const SizedBox(height: 6),
-              FlexFormInput(
-                controller: _password,
-                hint: '••••••••',
-                obscureText: true,
-              ),
-              const SizedBox(height: 10),
-              Text('CONFIRM PASSWORD', style: AppTextStyles.formLabel),
-              const SizedBox(height: 6),
-              FlexFormInput(
-                controller: _confirm,
-                hint: '••••••••',
-                obscureText: true,
-                errorText: _error,
-              ),
-              const SizedBox(height: 20),
-              FlexPrimaryButton(
-                label: loading ? 'Updating...' : 'Update password',
-                onPressed: loading ? null : _resetPassword,
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: TextButton(
-                  onPressed: () => context.go('/login'),
-                  child: Text('Cancel', style: AppTextStyles.buttonSecondary),
+      body: FlexPage(
+        maxWidth: 600,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const FlexSectionHeader(
+                  title: 'A fresh start.',
+                  subtitle:
+                      'Choose a password you’ll remember and keep it private.',
                 ),
-              ),
-            ],
+                Text('RESET PASSWORD', style: AppTextStyles.sectionLabel),
+                const SizedBox(height: 10),
+                Text(
+                  'Enter your new password below.',
+                  style: AppTextStyles.body,
+                ),
+                const SizedBox(height: 20),
+                Text('NEW PASSWORD', style: AppTextStyles.formLabel),
+                const SizedBox(height: 6),
+                FlexFormInput(
+                  controller: _password,
+                  hint: '••••••••',
+                  obscureText: true,
+                ),
+                const SizedBox(height: 10),
+                Text('CONFIRM PASSWORD', style: AppTextStyles.formLabel),
+                const SizedBox(height: 6),
+                FlexFormInput(
+                  controller: _confirm,
+                  hint: '••••••••',
+                  obscureText: true,
+                  errorText: _error,
+                ),
+                const SizedBox(height: 20),
+                FlexPrimaryButton(
+                  label: loading ? 'Updating...' : 'Update password',
+                  onPressed: loading ? null : _resetPassword,
+                ),
+                const SizedBox(height: 12),
+                const AuthLoginLink(),
+              ],
+            ),
           ),
         ),
       ),

@@ -26,10 +26,7 @@ class ChipBadge extends StatelessWidget {
         color: colors.$1,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        text,
-        style: AppTextStyles.chip.copyWith(color: colors.$2),
-      ),
+      child: Text(text, style: AppTextStyles.chip.copyWith(color: colors.$2)),
     );
   }
 }

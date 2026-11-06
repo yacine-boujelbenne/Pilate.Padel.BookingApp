@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 import 'buttons.dart';
+import 'confirmation_motion.dart';
+import 'page_layout.dart';
 
 class SuccessScreen extends StatelessWidget {
   final String sessionName;
@@ -10,6 +12,7 @@ class SuccessScreen extends StatelessWidget {
   final String method;
   final double amount;
   final VoidCallback onBackHome;
+  final VoidCallback? onViewBookings;
 
   const SuccessScreen({
     super.key,
@@ -19,6 +22,7 @@ class SuccessScreen extends StatelessWidget {
     required this.method,
     required this.amount,
     required this.onBackHome,
+    this.onViewBookings,
   });
 
   @override
@@ -27,52 +31,75 @@ class SuccessScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.mint,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              const Icon(Icons.check_circle,
-                  size: 72, color: AppColors.greenDark),
-              const SizedBox(height: 12),
-              Text('Booking confirmed!',
-                  style: AppTextStyles.logoTitle
-                      .copyWith(fontSize: 26, color: AppColors.sageDark)),
-              const SizedBox(height: 6),
-              Text(
-                isCash
-                    ? 'Your spot is reserved. Please bring ${amount.toStringAsFixed(0)} TND to the studio.'
-                    : 'Payment of ${amount.toStringAsFixed(0)} TND confirmed. See you on the mat!',
-                style: AppTextStyles.body,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 18),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(16)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(sessionName,
-                        style: AppTextStyles.body
-                            .copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 6),
-                    Text(date, style: AppTextStyles.sessionMeta),
-                    Text(coachStudio, style: AppTextStyles.sessionMeta),
-                    const SizedBox(height: 6),
-                    Text('Payment: $method', style: AppTextStyles.body),
-                    Text('Total paid: ${amount.toStringAsFixed(0)} TND',
-                        style: AppTextStyles.body
-                            .copyWith(fontWeight: FontWeight.w700)),
-                  ],
+        child: FlexPage(
+          maxWidth: 600,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                const ConfirmationMotion(),
+                const SizedBox(height: 12),
+                Text(
+                  'Booking confirmed!',
+                  style: AppTextStyles.logoTitle.copyWith(
+                    fontSize: 26,
+                    color: AppColors.sageDark,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              FlexSecondaryButton(label: 'Back to home', onPressed: onBackHome),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  isCash
+                      ? 'Your spot is reserved. Please bring ${amount.toStringAsFixed(0)} TND to the studio.'
+                      : 'Payment of ${amount.toStringAsFixed(0)} TND confirmed. See you on the mat!',
+                  style: AppTextStyles.body,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 18),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        sessionName,
+                        style: AppTextStyles.body.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(date, style: AppTextStyles.sessionMeta),
+                      Text(coachStudio, style: AppTextStyles.sessionMeta),
+                      const SizedBox(height: 6),
+                      Text('Payment: $method', style: AppTextStyles.body),
+                      Text(
+                        'Total paid: ${amount.toStringAsFixed(0)} TND',
+                        style: AppTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                if (onViewBookings != null) ...[
+                  FlexPrimaryButton(
+                    label: 'View my bookings',
+                    onPressed: onViewBookings,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                FlexSecondaryButton(
+                  label: 'Back to home',
+                  onPressed: onBackHome,
+                ),
+              ],
+            ),
           ),
         ),
       ),

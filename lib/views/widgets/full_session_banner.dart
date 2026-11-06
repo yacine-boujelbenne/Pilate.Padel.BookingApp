@@ -17,8 +17,10 @@ class FullSessionBanner extends StatelessWidget {
         children: [
           const Icon(Icons.cancel, color: AppColors.redDark, size: 18),
           const SizedBox(width: 8),
-          Text('Session Full',
-              style: AppTextStyles.body.copyWith(color: AppColors.redDark)),
+          Text(
+            'Session Full',
+            style: AppTextStyles.body.copyWith(color: AppColors.redDark),
+          ),
         ],
       ),
     );

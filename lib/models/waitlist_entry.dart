@@ -1,3 +1,5 @@
+import 'session_model.dart';
+
 class WaitlistEntry {
   final String id;
   final String memberId;
@@ -5,6 +7,7 @@ class WaitlistEntry {
   final String notifyChannel;
   final int position;
   final DateTime createdAt;
+  final SessionModel? session;
 
   const WaitlistEntry({
     required this.id,
@@ -13,6 +16,7 @@ class WaitlistEntry {
     required this.notifyChannel,
     required this.position,
     required this.createdAt,
+    this.session,
   });
 
   factory WaitlistEntry.fromMap(Map<String, dynamic> map) {
@@ -23,6 +27,9 @@ class WaitlistEntry {
       notifyChannel: (map['notify_channel'] as String?) ?? 'push',
       position: (map['position'] as num?)?.toInt() ?? 0,
       createdAt: DateTime.parse(map['created_at'] as String),
+      session: map['session'] is Map<String, dynamic>
+          ? SessionModel.fromMap(map['session'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

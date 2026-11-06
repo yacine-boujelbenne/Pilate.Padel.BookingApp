@@ -53,13 +53,16 @@ class CoachDirectoryService {
     rows = res.cast<Map<String, dynamic>>();
 
     // sort by first_name client-side to avoid server-side ordering differences
-    rows.sort((a, b) => ((a['first_name'] as String?) ?? '')
-        .toLowerCase()
-        .compareTo(((b['first_name'] as String?) ?? '').toLowerCase()));
+    rows.sort(
+      (a, b) => ((a['first_name'] as String?) ?? '').toLowerCase().compareTo(
+        ((b['first_name'] as String?) ?? '').toLowerCase(),
+      ),
+    );
 
     if (kDebugMode) {
       debugPrint(
-          'CoachDirectoryService.fetchVisibleCoaches returned ${rows.length} rows');
+        'CoachDirectoryService.fetchVisibleCoaches returned ${rows.length} rows',
+      );
     }
 
     return rows.map(CoachDirectoryEntry.fromMap).toList();
@@ -96,16 +99,19 @@ class CoachDirectoryService {
     rawRows.sort((a, b) {
       final am = a is Map ? a['start_at'] : (a as Map)['start_at'];
       final bm = b is Map ? b['start_at'] : (b as Map)['start_at'];
-      final ad = DateTime.tryParse(am?.toString() ?? '') ??
+      final ad =
+          DateTime.tryParse(am?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0);
-      final bd = DateTime.tryParse(bm?.toString() ?? '') ??
+      final bd =
+          DateTime.tryParse(bm?.toString() ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0);
       return ad.compareTo(bd);
     });
 
     if (kDebugMode) {
       debugPrint(
-          'CoachDirectoryService.fetchCoachRelatedSessions returned ${rawRows.length} rows for coach $coachId');
+        'CoachDirectoryService.fetchCoachRelatedSessions returned ${rawRows.length} rows for coach $coachId',
+      );
     }
 
     return rawRows.map((row) {

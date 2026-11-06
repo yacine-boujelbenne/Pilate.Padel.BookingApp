@@ -1,8 +1,9 @@
+import 'app_notifier.dart';
 import 'package:flutter/material.dart';
 
 import '../services/supabase_service.dart';
 
-class AdminController extends ChangeNotifier {
+class AdminController extends AppNotifier {
   final _client = SupabaseService.instance.client;
 
   bool _loading = false;
@@ -18,6 +19,19 @@ class AdminController extends ChangeNotifier {
   List<Map<String, dynamic>> get users => _users;
   List<Map<String, dynamic>> get coaches => _coaches;
   List<Map<String, dynamic>> get pendingValidations => _pendingValidations;
+
+  Future<Map<String, dynamic>?> fetchUser(String id) async {
+    final row = await _client
+        .from('profiles')
+        .select()
+        .eq('id', id)
+        .maybeSingle();
+    if (row != null) {
+      _users = [..._users.where((user) => user['id'] != id), row];
+      notifyListeners();
+    }
+    return row;
+  }
 
   Future<void> refreshDashboardData() async {
     _setLoading(true);
@@ -107,14 +121,37 @@ class AdminController extends ChangeNotifier {
       _users = rows;
     } catch (e) {
       _error ??= 'Failed loading users: $e';
+    } finally {
+      notifyListeners();
     }
+  }
+
+  Future<void> updateCoach(
+    String id, {
+    required String firstName,
+    required String lastName,
+    required String speciality,
+  }) async {
+    await _client
+        .from('profiles')
+        .update({
+          'first_name': firstName,
+          'last_name': lastName,
+          'speciality': speciality,
+        })
+        .eq('id', id)
+        .eq('role', 'coach');
+    await fetchAllCoaches();
   }
 
   Future<void> blockUser(String userId, bool isBlocked) async {
     await _client
         .from('profiles')
-        .update({'is_blocked': isBlocked}).eq('id', userId);
+        .update({'is_blocked': isBlocked})
+        .eq('id', userId);
     await fetchAllUsers();
+    await fetchDashboardStats();
+    notifyListeners();
   }
 
   Future<void> fetchAllCoaches() async {
@@ -128,13 +165,17 @@ class AdminController extends ChangeNotifier {
         final fallback = await _client.from('profiles').select().limit(1000);
         coaches = (fallback as List)
             .cast<Map<String, dynamic>>()
-            .where((row) =>
-                (row['role'] as String?)?.toLowerCase().trim() == 'coach')
+            .where(
+              (row) =>
+                  (row['role'] as String?)?.toLowerCase().trim() == 'coach',
+            )
             .toList();
       }
       _coaches = coaches;
     } catch (e) {
       _error ??= 'Failed loading coaches: $e';
+    } finally {
+      notifyListeners();
     }
   }
 
@@ -151,20 +192,24 @@ class AdminController extends ChangeNotifier {
       _pendingValidations = (res as List).cast<Map<String, dynamic>>();
     } catch (e) {
       _error ??= 'Failed loading pending validations: $e';
+    } finally {
+      notifyListeners();
     }
   }
 
   Future<void> approvePayment(String bookingId) async {
     await _client
         .from('bookings')
-        .update({'payment_status': 'paid'}).eq('id', bookingId);
+        .update({'payment_status': 'paid'})
+        .eq('id', bookingId);
     await fetchPendingValidations();
   }
 
   Future<void> rejectPayment(String bookingId) async {
     await _client
         .from('bookings')
-        .update({'payment_status': 'rejected'}).eq('id', bookingId);
+        .update({'payment_status': 'rejected'})
+        .eq('id', bookingId);
     await fetchPendingValidations();
   }
 

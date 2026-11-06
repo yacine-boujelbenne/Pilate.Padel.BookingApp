@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+import 'app_notifier.dart';
 
 import '../services/supabase_service.dart';
 
-class SettingsController extends ChangeNotifier {
+class SettingsController extends AppNotifier {
   final _client = SupabaseService.instance.client;
 
   bool _loading = false;
@@ -55,6 +55,7 @@ class SettingsController extends ChangeNotifier {
     bool? emailEnabled,
     bool? smsEnabled,
   }) async {
+    final previous = (_pushEnabled, _emailEnabled, _smsEnabled);
     _setLoading(true);
     try {
       final uid = _client.auth.currentUser?.id;
@@ -76,6 +77,9 @@ class SettingsController extends ChangeNotifier {
 
       _error = null;
     } catch (e) {
+      _pushEnabled = previous.$1;
+      _emailEnabled = previous.$2;
+      _smsEnabled = previous.$3;
       _error = e.toString();
     } finally {
       _setLoading(false);

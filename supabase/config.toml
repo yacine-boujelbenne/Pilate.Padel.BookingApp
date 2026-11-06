@@ -286,6 +286,11 @@ message_service_sid = ""
 # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
 auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
+# Supabase Auth authenticates this server-to-server endpoint with a signed webhook.
+# Enabling the hosted Send Email hook is a separate deployment step.
+[functions.auth-email-mailtrap]
+verify_jwt = false
+
 # Multi-factor-authentication is available to Supabase Pro plan.
 [auth.mfa]
 # Control how many MFA factors can be enrolled at once per user.

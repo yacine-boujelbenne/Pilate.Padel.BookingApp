@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'app_notifier.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/waitlist_entry.dart';
+import '../models/session_model.dart';
 import '../services/supabase_service.dart';
 
-class WaitlistController extends ChangeNotifier {
+class WaitlistController extends AppNotifier {
   final _client = SupabaseService.instance.client;
 
   List<WaitlistEntry> _entries = [];
@@ -27,8 +28,10 @@ class WaitlistController extends ChangeNotifier {
       ..subscribe();
   }
 
-  Future<void> joinWaitlist(
-      {required String sessionId, required String notifyChannel}) async {
+  Future<void> joinWaitlist({
+    required String sessionId,
+    required String notifyChannel,
+  }) async {
     _setLoading(true);
     try {
       final uid = _client.auth.currentUser?.id;
@@ -76,7 +79,7 @@ class WaitlistController extends ChangeNotifier {
     try {
       final res = await _client
           .from('waitlists')
-          .select()
+          .select('*, session:sessions(${SessionModel.selection})')
           .eq('member_id', uid)
           .order('created_at');
       _entries = (res as List)
@@ -99,8 +102,10 @@ class WaitlistController extends ChangeNotifier {
   }
 
   Future<void> notifyNextInLine(String sessionId) async {
-    await _client.functions
-        .invoke('notify-waitlist', body: {'session_id': sessionId});
+    await _client.functions.invoke(
+      'notify-waitlist',
+      body: {'session_id': sessionId},
+    );
   }
 
   @override

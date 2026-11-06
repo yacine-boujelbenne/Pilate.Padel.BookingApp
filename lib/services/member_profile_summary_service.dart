@@ -41,8 +41,9 @@ class MemberProfileSummaryService {
     for (final row in rows as List) {
       final booking = Map<String, dynamic>.from(row as Map);
       final status = (booking['status'] as String? ?? '').toLowerCase().trim();
-      final paymentStatus =
-          (booking['payment_status'] as String? ?? '').toLowerCase().trim();
+      final paymentStatus = (booking['payment_status'] as String? ?? '')
+          .toLowerCase()
+          .trim();
       final session = booking['sessions'] as Map<String, dynamic>?;
       final startAt = _parseDate(session?['start_at']);
       final endAt = _parseDate(session?['end_at']);
@@ -55,7 +56,7 @@ class MemberProfileSummaryService {
           startAt != null && !startAt.isBefore(now) && status == 'confirmed';
       final isPastBooking =
           (endAt != null && endAt.isBefore(now) && status != 'cancelled') ||
-              status == 'attended';
+          status == 'attended';
 
       if (isFutureBooking) {
         sessionsLeft++;

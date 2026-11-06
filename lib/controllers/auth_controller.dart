@@ -4,10 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/profile.dart';
+import '../services/password_recovery_messages.dart';
 import '../services/supabase_service.dart';
 
 class AuthController extends ChangeNotifier {
-  final _client = SupabaseService.instance.client;
+  AuthController({SupabaseClient? client})
+    : _client = client ?? SupabaseService.instance.client;
+  final SupabaseClient _client;
   final _passwordRecoveryController = StreamController<void>.broadcast();
   Stream<void> get passwordRecoveryStream => _passwordRecoveryController.stream;
 
@@ -120,14 +123,16 @@ class AuthController extends ChangeNotifier {
   }) async {
     _setLoading(true);
     try {
-      final response =
-          await _client.functions.invoke('create-coach-account', body: {
-        'first_name': firstName,
-        'last_name': lastName,
-        'email': email,
-        'phone': phone,
-        'speciality': speciality,
-      });
+      final response = await _client.functions.invoke(
+        'create-coach-account',
+        body: {
+          'first_name': firstName,
+          'last_name': lastName,
+          'email': email,
+          'phone': phone,
+          'speciality': speciality,
+        },
+      );
       _error = null;
       final data = response.data;
       if (data is Map && data['temp_password'] is String) {
@@ -150,8 +155,11 @@ class AuthController extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    final data =
-        await _client.from('profiles').select().eq('id', uid).maybeSingle();
+    final data = await _client
+        .from('profiles')
+        .select()
+        .eq('id', uid)
+        .maybeSingle();
     if (data == null) {
       final metadata = _client.auth.currentUser?.userMetadata ?? {};
       final role = (metadata['role'] as String?) ?? 'member';
@@ -168,8 +176,11 @@ class AuthController extends ChangeNotifier {
         'member_tier': (metadata['member_tier'] as String?) ?? 'standard',
       });
 
-      final created =
-          await _client.from('profiles').select().eq('id', uid).maybeSingle();
+      final created = await _client
+          .from('profiles')
+          .select()
+          .eq('id', uid)
+          .maybeSingle();
       _profile = created == null ? null : Profile.fromMap(created);
     } else {
       _profile = Profile.fromMap(data);
@@ -179,6 +190,7 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> sendPasswordResetEmail({required String email}) async {
+    _error = null;
     _setLoading(true);
     try {
       await _client.auth.resetPasswordForEmail(
@@ -187,7 +199,7 @@ class AuthController extends ChangeNotifier {
       );
       _error = null;
     } catch (e) {
-      _error = e.toString();
+      _error = PasswordRecoveryMessages.sendFailure(e);
       rethrow;
     } finally {
       _setLoading(false);
@@ -195,14 +207,13 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> updatePassword({required String newPassword}) async {
+    _error = null;
     _setLoading(true);
     try {
-      await _client.auth.updateUser(
-        UserAttributes(password: newPassword),
-      );
+      await _client.auth.updateUser(UserAttributes(password: newPassword));
       _error = null;
     } catch (e) {
-      _error = e.toString();
+      _error = PasswordRecoveryMessages.updateFailure(e);
       rethrow;
     } finally {
       _setLoading(false);
@@ -228,15 +239,14 @@ class AuthController extends ChangeNotifier {
         throw Exception('Not authenticated');
       }
 
-      await _client.from('profiles').update({
-        'first_name': firstName,
-        'last_name': lastName,
-      }).eq('id', uid);
+      await _client
+          .from('profiles')
+          .update({'first_name': firstName, 'last_name': lastName})
+          .eq('id', uid);
 
-      await _client.auth.updateUser(UserAttributes(data: {
-        'first_name': firstName,
-        'last_name': lastName,
-      }));
+      await _client.auth.updateUser(
+        UserAttributes(data: {'first_name': firstName, 'last_name': lastName}),
+      );
 
       await getCurrentProfile();
       _error = null;
